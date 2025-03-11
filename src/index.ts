@@ -1,21 +1,32 @@
-import { Server, IncomingMessage, ServerResponse } from 'http';
+import { IncomingMessage, Server, ServerResponse } from 'http';
+import { appRoute } from './routes';
+import { IRoute } from './routes/interfaces';
+import { cryptographyUtil, dateFormatterUtil, HttpClientUtil } from './utils';
+import { IHttpClientConfiguration } from './utils/interfaces';
+import { ApiKeyStrategy, BasicStrategy, BasicAndBearerTokenStrategy, BearerTokenStrategy, OAuth2Strategy } from './utils/strategies';
+import { IAuthenticationStrategy } from './utils/strategies/interfaces';
 import appModule from './app.module';
-import { dateFormatterUtil } from './utils';
 
 /**
- * @describe Extends the global NodeJS module with custom properties.
+ * ## global
+ * 
+ * Extends the global NodeJS module with custom properties.
  * 
  * @description Adds custom properties to the NodeJS module to provide type guards.
  */
 declare global {
   /**
-   * @describe Extends the Object interface with custom methods.
+   * ## ObjectConstructor
+   * 
+   * Extends the Object interface with custom methods.
    * 
    * @description Adds custom methods to the Object interface to provide type guards.
    */
   interface ObjectConstructor {
     /**
-     * @describe Type guard that checks if a value is a non-null object.
+     * ## isObject
+     * 
+     * Type guard that checks if a value is a non-null object.
      * 
      * @description Determines if the input is a non-null, non-array object unless arrays are explicitly included.
      * 
@@ -32,7 +43,9 @@ declare global {
     isObject(element: unknown, includeArrays?: boolean): element is object;
 
     /**
-     * @describe Type guard that checks if a value is a string.
+     * ## isString
+     * 
+     * Type guard that checks if a value is a string.
      * 
      * @description Determines if the input is a string primitive using reliable type checking.
      * 
@@ -62,24 +75,17 @@ const LOG_INTERVAL = 10_000;
 const SHUTDOWN_SIGNALS = ['SIGTERM', 'SIGINT'] as const;
 
 /**
- * @describe Logs server events with standardized formatting.
+ * ## setupPeriodicLogging
  * 
- * @description Creates a standardized log message including port, timestamp and the message.
+ * Sets up periodic status logging to indicate server health.
  * 
- * @param message - Log message text.
- */
-const logServerEvent = (message: string): void => console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | ${ message }`);
-
-/**
- * @describe Sets up periodic status logging to indicate server health.
- * 
- * @description Initializes an interval timer that logs server port periodically
- * and ensures it doesn't prevent process exit.
+ * @description Initializes an interval timer that logs server port every {@link LOG_INTERVAL} milliseconds
+ * and ensures it doesn't prevent process exit by using unref().
  * 
  * @returns Timer reference that can be cleared if needed.
  */
 const setupPeriodicLogging = (): NodeJS.Timeout => {
-  const logTimer = setInterval((): void => logServerEvent(`Port: ${ PORT }`), LOG_INTERVAL);
+  const logTimer = setInterval((): void => console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Port: ${ PORT }`), LOG_INTERVAL);
 
   logTimer.unref();
 
@@ -87,10 +93,12 @@ const setupPeriodicLogging = (): NodeJS.Timeout => {
 };
 
 /**
- * @describe Configures graceful shutdown handlers for the server.
+ * ## setupGracefulShutdown
  * 
- * @description Sets up signal handlers for graceful shutdown with a timeout fallback
- * to force termination if graceful shutdown takes too long.
+ * Configures graceful shutdown handlers for the server.
+ * 
+ * @description Sets up signal handlers for graceful shutdown with a 5-second timeout fallback
+ * to force termination if graceful shutdown takes too long. Handles {@link SHUTDOWN_SIGNALS}.
  * 
  * @param server - HTTPS server instance to shut down.
  */
@@ -100,18 +108,18 @@ const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof Ser
       process.on(
         signal, 
         (): void => {
-          logServerEvent(`Status: ${ signal } received. Shutting down the server`);
+          console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: ${ signal } received. Shutting down the server`);
           
           server.close(
             (): void => {
-              logServerEvent('Status: Server closed');
+              console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: Server closed`);
               process.exit(0);
             }
           );
           
           setTimeout(
             (): void => {
-              logServerEvent('Status: Forcing server shutdown after timeout');
+              console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: Forcing server shutdown after timeout`);
               process.exit(1);
             }, 
             5000
@@ -123,12 +131,15 @@ const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof Ser
 };
 
 /**
- * @async
+ * ## startServer
  * 
- * @describe Initializes and starts the HTTPS server.
+ * Initializes and starts the HTTPS server.
  * 
  * @description Starts the server on the configured port, sets up periodic logging,
- * graceful shutdown handlers, and error handling.
+ * graceful shutdown handlers, and error handling. Listens for server errors
+ * and handles them appropriately.
+ * 
+ * @async
  * 
  * @throws Will exit process on critical errors.
  */
@@ -139,7 +150,7 @@ const startServer = async (): Promise<void> => {
     const server = resolvedAppModule.listen(
       PORT, 
       (): void => {
-        logServerEvent('Status: Server started');
+        console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: Server started`);
         setupPeriodicLogging();
       }
     );
@@ -148,18 +159,18 @@ const startServer = async (): Promise<void> => {
     
     server.on(
       'error', 
-      (error: NodeJS.ErrnoException) => {
+      (error: NodeJS.ErrnoException): void => {
         if (error.code === 'EADDRINUSE') {
-          logServerEvent(`Error: Port ${ PORT } is already in use`);
+          console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: Port ${ PORT } is already in use`);
         } else {
-          logServerEvent(`Error: ${ error.message }`);
+          console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error.message }`);
         }
 
         process.exit(1);
       }
     );
   } catch (error: unknown) {
-    logServerEvent(`Error: ${ error instanceof Error ? error.message : String(error) }`);
+    console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
     process.exit(1);
   }
 };
@@ -167,7 +178,7 @@ const startServer = async (): Promise<void> => {
 process.on(
   'uncaughtException', 
   (error: unknown): void => {
-    logServerEvent(`Error: ${ error instanceof Error ? error.message : String(error) }`);
+    console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
     process.exit(1);
   }
 );
@@ -175,14 +186,43 @@ process.on(
 process.on(
   'unhandledRejection', 
   (error: unknown): void => {
-    logServerEvent(`Error: ${ error instanceof Error ? error.message : String(error) }`);
+    console.log(`Server | Timestamp: ${ dateFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
     process.exit(1);
   }
 );
 
-startServer().catch(
-  (error: unknown): void => {
-    logServerEvent(`Error: ${ error instanceof Error ? error.message : String(error) }`);
-    process.exit(1);
-  }
-);
+export default startServer;
+
+/**
+ * ## generateRoute
+ * 
+ * Creates and registers a single API route.
+ * 
+ * @description This function registers a route with the Express router:
+ *  - Adds an optional authorization middleware based on configuration
+ *  - Applies the appropriate HTTP method handler
+ *  - Constructs the full route path with version prefix
+ *  - Attaches the service function wrapped in a controller
+ * 
+ * @param routeConfig - The route configuration object.
+ * @param routeConfig.version - The API version identifier (e.g., 'v1', 'v2').
+ * @param routeConfig.endpoint - The endpoint path (excluding version prefix).
+ * @param routeConfig.method - The HTTP method (get, post, put, delete, etc.).
+ * @param routeConfig.service - The service function to handle the route.
+ * @param routeConfig.requiresAuthorization - Whether the route requires authorization (defaults to true).
+ */
+export const generateRoute = appRoute.generateRoute;
+
+export { 
+  IRoute, 
+  cryptographyUtil, 
+  dateFormatterUtil, 
+  HttpClientUtil,
+  IHttpClientConfiguration, 
+  ApiKeyStrategy, 
+  BasicStrategy, 
+  BasicAndBearerTokenStrategy, 
+  BearerTokenStrategy, 
+  OAuth2Strategy,
+  IAuthenticationStrategy
+};

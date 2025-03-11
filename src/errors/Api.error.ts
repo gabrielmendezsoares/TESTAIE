@@ -2,21 +2,23 @@ import { ICustomError } from "./interfaces";
 import { BaseError } from './Base.error';
 
 /**
- * @class ApiError
+ * ## ApiError
  * 
- * @describe Base class for API errors.
+ * Base class for API errors.
  * 
  * @description This class extends the BaseError class and implements the ICustomError interface.
  */
 export class ApiError extends BaseError implements ICustomError.ICustomError {
   /**
+   * ## constructor
+   * 
+   * Constructor for the ApiError class.
+   * 
+   * @description Creates an instance of ApiError.
+   * 
    * @public
    * 
    * @constructor
-   * 
-   * @describe Constructor for the ApiError class.
-   * 
-   * @description Creates an instance of ApiError.
    * 
    * @param message - Error message.
    * @param code - Error code.

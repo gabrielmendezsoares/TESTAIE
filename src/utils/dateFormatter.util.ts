@@ -1,5 +1,7 @@
 /**
- * @describe Formats a date in DD/MM/YYYY format.
+ * ## formatAsDayMonthYear
+ * 
+ * Formats a date in DD/MM/YYYY format.
  * 
  * @description This function takes a JavaScript Date object and converts it to a string
  * in the format "DD/MM/YYYY" where DD is the day (01-31), MM is the month (01-12),
@@ -8,10 +10,6 @@
  * @param date - The date to format.
  * 
  * @returns Formatted time string in HH:MM:SS format.
- * 
- * @example
- * const date = new Date();
- * const formattedTime = formatAsDayMonthYear(date);
  */
 export const formatAsDayMonthYear = (date: Date): string => {
   const day = String(date.getDate()).padStart(2, '0');
@@ -22,7 +20,9 @@ export const formatAsDayMonthYear = (date: Date): string => {
 };
 
 /**
- * @describe Formats a date in HH:MM:SS format.
+ * ## formatAsHoursMinutesSeconds
+ * 
+ * Formats a date in HH:MM:SS format.
  * 
  * @description This function extracts the time components from a JavaScript Date object
  * and returns a string in the format "HH:MM:SS" where HH is hours (0-23),
@@ -32,10 +32,6 @@ export const formatAsDayMonthYear = (date: Date): string => {
  * @param date - The date to format.
  * 
  * @returns Formatted time string in HH:MM:SS format.
- * 
- * @example
- * const date = new Date();
- * const formattedTime = formatAsHoursMinutesSeconds(date);
  */
 export const formatAsHoursMinutesSeconds = (date: Date): string => {
   const hours = date.getHours();
@@ -46,7 +42,9 @@ export const formatAsHoursMinutesSeconds = (date: Date): string => {
 };
 
 /**
- * @describe Formats a date in DD/MM/YYYY - HH:MM:SS format.
+ * ## formatAsDayMonthYearHoursMinutesSeconds
+ * 
+ * Formats a date in DD/MM/YYYY - HH:MM:SS format.
  * 
  * @description This function combines the date and time formatting to create a complete
  * timestamp string. It uses the {@link formatAsDayMonthYear} and {@link formatAsHoursMinutesSeconds}
@@ -55,10 +53,6 @@ export const formatAsHoursMinutesSeconds = (date: Date): string => {
  * @param date - The date to format.
  * 
  * @returns Formatted date and time string in DD/MM/YYYY - HH:MM:SS format.
- * 
- * @example
- * const date = new Date();
- * const formattedTimestamp = formatAsDayMonthYearHoursMinutesSeconds(date);
  */
 export const formatAsDayMonthYearHoursMinutesSeconds = (date: Date): string => {
   return `${ formatAsDayMonthYear(date) } - ${ formatAsHoursMinutesSeconds(date) }`;

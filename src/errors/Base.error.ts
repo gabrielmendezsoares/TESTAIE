@@ -1,14 +1,20 @@
 import { ICustomError } from "./interfaces";
 
 /**
- * @class BaseError
+ * ## BaseError
  * 
- * @describe Base class for all custom errors.
+ * Base class for all custom errors.
  * 
  * @description This class extends the native Error class and implements the ICustomError interface.
  */
 export class BaseError extends Error implements ICustomError.ICustomError {   
   /**
+   * ## constructor
+   * 
+   * Constructor for the BaseError class.
+   * 
+   * @description Creates an instance of BaseError.
+   * 
    * @public
    * 
    * @constructor

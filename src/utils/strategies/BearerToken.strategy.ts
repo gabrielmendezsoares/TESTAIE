@@ -2,9 +2,9 @@ import { AxiosRequestConfig } from 'axios/index';
 import { IAuthenticationStrategy } from './interfaces';
 
 /**
- * @class BearerTokenStrategy
+ * ## BearerTokenStrategy
  * 
- * @describe Bearer token authentication strategy.
+ * Bearer token authentication strategy.
  * 
  * @description Implements authentication using a bearer token in the Authorization header.
  * 
@@ -12,13 +12,15 @@ import { IAuthenticationStrategy } from './interfaces';
  */
 export class BearerTokenStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
+   * ## constructor
+   * 
+   * Creates a new bearer token authentication strategy.
+   * 
+   * @description The strategy uses the provided bearer token to authenticate requests.
+   * 
    * @public
    * 
    * @constructor
-   * 
-   * @describe Creates a new bearer token authentication strategy.
-   * 
-   * @description The strategy uses the provided bearer token to authenticate requests.
    * 
    * @param token - The bearer token to use for authentication.
    */
@@ -31,12 +33,14 @@ export class BearerTokenStrategy implements IAuthenticationStrategy.IAuthenticat
   ) {}
 
   /**
-   * @public
+   * ## authenticate
    * 
-   * @describe Adds the bearer token to the request configuration.
+   * Adds the bearer token to the request configuration.
    * 
    * @description This method modifies the request configuration to include the bearer
    * token in the Authorization header.
+   * 
+   * @public
    * 
    * @param configuration - The request configuration to authenticate.
    * 

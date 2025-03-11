@@ -3,9 +3,9 @@ import { AxiosRequestConfig } from 'axios/index';
 import { IAuthenticationStrategy } from './interfaces';
 
 /**
- * @class OAuth2Strategy
+ * ## OAuth2Strategy
  * 
- * @describe OAuth2 authentication strategy.
+ * OAuth2 authentication strategy.
  * 
  * @description Handles OAuth2 token management including automatic refresh of expired tokens.
  * 
@@ -14,42 +14,50 @@ import { IAuthenticationStrategy } from './interfaces';
  */
 export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
-   * @private
+   * ## accessToken
    * 
-   * @describe OAuth2 access token.
+   * OAuth2 access token.
    * 
    * @description This property holds the current OAuth2 access token used for authentication.
+   * 
+   * @private
    */
   private accessToken: string;
 
   /**
-   * @private
+   * ## refreshToken
    * 
-   * @describe OAuth2 refresh token.
+   * OAuth2 refresh token.
    * 
    * @description This property holds the current OAuth2 refresh token used to obtain new access tokens.
+   * 
+   * @private
    */
   private refreshToken: string;
 
   /**
-   * @private
+   * ## expiresAt
    * 
-   * @describe Token expiration date.
+   * Token expiration date.
    * 
    * @description This property holds the date and time when the current access token expires.
+   * 
+   * @private
    */
   private expiresAt: Date;
 
   /**
-   * @public
+   * ## constructor
    * 
-   * @constructor
-   * 
-   * @describe Creates a new OAuth2 authentication strategy.
+   * Creates a new OAuth2 authentication strategy.
    * 
    * @description The strategy uses the provided OAuth2 client ID, client secret, and token URL
    * to manage OAuth2 tokens. An initial token can be provided to start with a valid
    * access token and refresh token.
+   * 
+   * @public
+   * 
+   * @constructor
    * 
    * @param clientId - OAuth2 client ID.
    * @param clientSecret - OAuth2 client secret.
@@ -96,21 +104,27 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
      */
     public initialToken?: {
       /**
-       * @describe Initial access token.
+       * ## accessToken
+       * 
+       * Initial access token.
        * 
        * @description This property holds the initial access token used for authentication.
        */
       accessToken: string;
 
       /**
-       * @describe Initial refresh token.
+       * ## refreshToken
+       * 
+       * Initial refresh token.
        * 
        * @description This property holds the initial refresh token used to obtain new access tokens.
        */
       refreshToken: string;
 
       /**
-       * @describe Token expiration time in seconds.
+       * ## expiresIn
+       * 
+       * Token expiration time in seconds.
        * 
        * @description This property holds the expiration time of the initial access token in seconds.
        */
@@ -131,15 +145,17 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   }
 
   /**
-   * @public
+   * ## authenticate
    * 
-   * @async
-   * 
-   * @describe Authenticates a request, refreshing the token if necessary.
+   * Authenticates a request, refreshing the token if necessary.
    * 
    * @description This method checks if the current access token is valid and not expired.
    * If the token is expired or missing, it attempts to refresh the token using
    * the refresh token. If the refresh token is missing or invalid, an error is thrown.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @param configuration - The request configuration to authenticate.
    * 
@@ -171,11 +187,13 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   }
 
   /**
-   * @private
+   * ## shouldRefresh
    * 
-   * @describe Checks if the current token needs to be refreshed.
+   * Checks if the current token needs to be refreshed.
    * 
    * @description This method checks if the current access token is missing or expired.
+   * 
+   * @private
    * 
    * @returns True if token refresh is needed.
    */
@@ -186,14 +204,16 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   }
 
   /**
-   * @public
+   * ## refresh
    * 
-   * @async
-   * 
-   * @describe Refreshes the OAuth2 tokens.
+   * Refreshes the OAuth2 tokens.
    * 
    * @description This method sends a token refresh request to the token URL using the current
    * refresh token. If the refresh token is missing or invalid, an error is thrown.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @throws If token refresh fails or refresh token is invalid.
    * 

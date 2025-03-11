@@ -1,21 +1,12 @@
 import axios from 'axios';
-
-import
-  {
-    AxiosError,
-    AxiosInstance, 
-    AxiosRequestConfig, 
-    AxiosResponse
-  } 
-from 'axios/index';
-
+import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios/index';
 import { IAuthenticationStrategy } from './strategies/interfaces';
 import { IHttpClientConfiguration } from './interfaces';
 
 /**
- * @class HttpClient
+ * ## HttpClient
  * 
- * @describe Enhanced HTTP client built on Axios with support for authentication strategies,
+ * Enhanced HTTP client built on Axios with support for authentication strategies,
  * automatic retries, and request/response interceptors.
  * 
  * @description This client implements the singleton pattern to ensure a consistent configuration
@@ -34,47 +25,55 @@ import { IHttpClientConfiguration } from './interfaces';
  * @method head - Performs a HEAD request.
  * @method options - Performs a OPTIONS request.
  */
-export class HttpClientUtil {
+export class HttpClient {
   /**
-   * @private
-   * @static
+   * ## instance
    * 
-   * @describe Singleton instance of the HTTP client.
+   * Singleton instance of the HTTP client.
    * 
    * @description The singleton pattern ensures that only one instance of the client is created
    * and shared across the application. This allows for consistent configuration
    * and centralized error handling.
+   * 
+   * @private
+   * @static
    */
-  private static instance?: HttpClientUtil;
+  private static instance?: HttpClient;
 
   /**
-   * @private
-   * @readonly
+   * ## axiosInstance
    * 
-   * @describe Axios instance used for making HTTP requests.
+   * Axios instance used for making HTTP requests.
    * 
    * @description The Axios instance is configured with the provided or default values
    * and is used to make all HTTP requests.
+   * 
+   * @private
+   * @readonly
    */
   private readonly axiosInstance: AxiosInstance;
 
   /**
-   * @private
+   * ## authenticationStrategy
    * 
-   * @describe Current authentication strategy for the client.
+   * Current authentication strategy for the client.
    * 
    * @description The authentication strategy will be applied to all subsequent requests
    * until cleared via {@link clearAuthenticationStrategy}.
+   * 
+   * @private
    */
   private authenticationStrategy?: IAuthenticationStrategy.IAuthenticationStrategy;
   
   /**
-   * @private
-   * @readonly
+   * ## DEFAULT_CONFIGURATION
    * 
-   * @describe Default configuration values for the HTTP client.
+   * Default configuration values for the HTTP client.
    * 
    * @description These values are used when no specific configuration is provided.
+   * 
+   * @private
+   * @readonly
    */
   private readonly DEFAULT_CONFIGURATION: Required<Pick<IHttpClientConfiguration.IHttpClientConfiguration, 'retry' | 'headers' | 'timeout'>> = {
     retry: {
@@ -87,14 +86,16 @@ export class HttpClientUtil {
   };
 
   /**
-   * @private
+   * ## constructor
    * 
-   * @constructor
-   * 
-   * @describe Private constructor to enforce singleton pattern.
+   * Private constructor to enforce singleton pattern.
    * 
    * @description The constructor initializes the Axios instance with the provided configuration
    * and sets up request and response interceptors for automatic retries and error handling.
+   * 
+   * @private
+   * 
+   * @constructor
    * 
    * @param configuration - Optional configuration for the client.
    */
@@ -109,14 +110,16 @@ export class HttpClientUtil {
     this.setupInterceptors(configuration?.retry);
   }
 
- /**
-   * @public
-   * @static
+  /**
+   * ## getInstance
    * 
-   * @describe Gets the singleton instance of the HTTP client.
+   * Gets the singleton instance of the HTTP client.
    * 
    * @description If no instance exists, a new one is created with the provided configuration.
    * If an instance already exists, it is returned unchanged (the configuration is ignored).
+   * 
+   * @public
+   * @static
    * 
    * @param configuration - Optional configuration for the client.
    * 
@@ -140,20 +143,22 @@ export class HttpClientUtil {
    *   timeout: 30000
    * );
    */
-  public static getInstance(configuration?: IHttpClientConfiguration.IHttpClientConfiguration): HttpClientUtil {
-    if (!HttpClientUtil.instance) {
-      HttpClientUtil.instance = new HttpClientUtil(configuration);
+  public static getInstance(configuration?: IHttpClientConfiguration.IHttpClientConfiguration): HttpClient {
+    if (!HttpClient.instance) {
+      HttpClient.instance = new HttpClient(configuration);
     }
     
-    return HttpClientUtil.instance;
+    return HttpClient.instance;
   }
 
   /**
-   * @private
+   * ## createAxiosInstance
    * 
-   * @describe Creates an instance of Axios with the provided configuration.
+   * Creates an instance of Axios with the provided configuration.
    * 
    * @description The configuration is merged with the default values to ensure consistency.
+   * 
+   * @private
    * 
    * @param configuration - Optional configuration for the Axios instance.
    * 
@@ -170,12 +175,14 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## setAuthenticationStrategy
    * 
-   * @describe Sets the current authentication strategy for the client.
+   * Sets the current authentication strategy for the client.
    * 
    * @description The authentication strategy will be applied to all subsequent requests
    * until cleared via {@link clearAuthenticationStrategy}.
+   * 
+   * @public
    * 
    * @param strategy - The authentication strategy to use.
    * 
@@ -200,12 +207,14 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## clearAuthenticationStrategy
    * 
-   * @describe Clears the current authentication strategy for the client.
+   * Clears the current authentication strategy for the client.
    * 
    * @description Subsequent requests will be made without authentication
    * until a new strategy is set.
+   * 
+   * @public
    * 
    * @example
    * // Clear authentication
@@ -217,9 +226,9 @@ export class HttpClientUtil {
   }
 
   /**
-   * @private
+   * ## setupInterceptors
    * 
-   * @describe Sets up request and response interceptors.
+   * Sets up request and response interceptors.
    * 
    * @description Request interceptors:
    * - Add a unique X-Request-ID header to each request
@@ -228,6 +237,8 @@ export class HttpClientUtil {
    * Response interceptors:
    * - Implement automatic retry for failed requests with exponential backoff
    * - Normalize errors into ApiError format
+   * 
+   * @private
    * 
    * @param retryConfiguration - Optional retry configuration.
    */
@@ -287,14 +298,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## request
    * 
-   * @async
-   * 
-   * @describe Makes an HTTP request with the current authentication strategy.
+   * Makes an HTTP request with the current authentication strategy.
    * 
    * @description This is the core method used by the specific HTTP method helpers.
    * It allows for direct control over the request method, URL, data, and options.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -356,14 +369,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## get
    * 
-   * @async
-   * 
-   * @describe Performs a GET request.
+   * Performs a GET request.
    * 
    * @description This method is used to retrieve a resource identified by the URL.
    * For example, it can be used to fetch data from an API endpoint.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -406,14 +421,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## post
    * 
-   * @async
-   * 
-   * @describe Performs a POST request.
+   * Performs a POST request.
    * 
    * @description This method is used to create a new resource identified by the URL.
    * For example, it can be used to submit a form or upload a file.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -459,14 +476,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## put
    * 
-   * @async
-   * 
-   * @describe Performs a PUT request.
+   * Performs a PUT request.
    * 
    * @description This method is used to create or update a resource identified by the URL.
    * For example, it can be used to save a new user account or update a database record.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -512,14 +531,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## patch
    * 
-   * @async
-   * 
-   * @describe Performs a PATCH request.
+   * Performs a PATCH request.
    * 
    * @description This method is used to update a resource identified by the URL.
    * For example, it can be used to modify a user profile or a database record.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -565,14 +586,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## delete
    * 
-   * @async
-   * 
-   * @describe Performs a DELETE request.
+   * Performs a DELETE request.
    * 
    * @description This method is used to delete a resource identified by the URL.
    * For example, it can be used to remove a user account or a database record.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -615,14 +638,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## head
    * 
-   * @async
-   * 
-   * @describe Performs a HEAD request.
+   * Performs a HEAD request.
    * 
    * @description This method is used to retrieve the headers of a resource without fetching the body.
    * For example, it can be used to check if a resource exists or to get metadata.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 
@@ -665,14 +690,16 @@ export class HttpClientUtil {
   }
 
   /**
-   * @public
+   * ## options
    * 
-   * @async
-   * 
-   * @describe Performs a OPTIONS request.
+   * Performs a OPTIONS request.
    * 
    * @description This method is used to describe the communication options for the target resource.
    * For example, it can be used to determine the supported methods, headers, and other details.
+   * 
+   * @public
+   * 
+   * @async
    * 
    * @template T - Type of the expected response data.
    * 

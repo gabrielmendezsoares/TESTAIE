@@ -1,9 +1,9 @@
 import { AxiosRequestConfig } from 'axios/index';
 
 /**
- * @interface IAuthenticationStrategy
+ * ## IAuthenticationStrategy
  * 
- * @describe Base interface for all authentication strategies.
+ * Base interface for all authentication strategies.
  * 
  * @description Defines the contract that all authentication implementations must follow.
  * 
@@ -31,7 +31,9 @@ import { AxiosRequestConfig } from 'axios/index';
  */
 export interface IAuthenticationStrategy {
   /**
-   * @describe Authenticates an HTTP request by modifying its configuration.
+   * ## authenticate
+   * 
+   * Authenticates an HTTP request by modifying its configuration.
    * 
    * @description This method receives the original request configuration and returns a modified
    * configuration that includes the necessary authentication headers or tokens.
@@ -43,7 +45,9 @@ export interface IAuthenticationStrategy {
   authenticate(configuration: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> | AxiosRequestConfig<any>;
   
   /**
-   * @describe Refreshes the authentication credentials if supported.
+   * ## refresh
+   * 
+   * Refreshes the authentication credentials if supported.
    * 
    * @description This method is optional and only required if the strategy supports credential refresh.
    * It should be implemented to renew the authentication tokens or keys when they expire.

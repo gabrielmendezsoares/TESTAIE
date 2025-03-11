@@ -1,64 +1,45 @@
 import { Request, Response, Router } from 'express';
+import path from 'path';
 import { appController } from '../controllers';
 import { IRoute } from './interfaces';
+import { appService } from '../services';
 import { dateFormatterUtil } from '../utils';
 
 export const router = Router();
 
-const routes = [
-  {
-    version: 'v1',
-    routes: [
-      {
-        endpoint: 'auth/guard/main/get/authentication',
-        method: 'get',
-        controller: appController.getAuthentication,
-        requiresAuthorization: false
-      },
-      {
-        endpoint: 'auth/guard/main/get/authorization',
-        method: 'get',
-        controller: appController.getAuthorization,
-        requiresAuthorization: false
-      }
-    ]
-  }
-];
-
 /**
- * @describe Creates and registers versioned API routes.
+ * ## generateRoute
  * 
- * @description This function registers routes with an optional authorization middleware, 
- * based on the route configuration.
- * Each route is registered under the specified version's URL prefix.
+ * Creates and registers a single API route.
  * 
- * @param version - The version identifier (e.g., 'v1', 'v2').
- * @param routes - The route configurations to be registered for the given version.
+ * @description This function registers a route with the Express router:
+ *  - Adds an optional authorization middleware based on configuration
+ *  - Applies the appropriate HTTP method handler
+ *  - Constructs the full route path with version prefix
+ *  - Attaches the service function wrapped in a controller
+ * 
+ * @param routeConfig - The route configuration object.
+ * @param routeConfig.version - The API version identifier (e.g., 'v1', 'v2').
+ * @param routeConfig.endpoint - The endpoint path (excluding version prefix).
+ * @param routeConfig.method - The HTTP method (get, post, put, delete, etc.).
+ * @param routeConfig.service - The service function to handle the route.
+ * @param routeConfig.requiresAuthorization - Whether the route requires authorization (defaults to true).
  */
-const createVersionedRoutes = (version: string, routes: IRoute.IRoute[]): void => {
-  routes.forEach(
-    (
-      { 
-        endpoint, 
-        method, 
-        controller, 
-        requiresAuthorization = true 
-      }: IRoute.IRoute
-    ): void => {
-      if (requiresAuthorization) {
-        (router as any)[method](`/${ version }/${ endpoint }`, appController.getAuthorization, controller);
-      } else {
-        (router as any)[method](`/${ version }/${ endpoint }`, controller);
-      }
-    }
-  );
-};
-
-routes.forEach(
-  ({ version, routes }: { version: string, routes: IRoute.IRoute[] }): void => {
-    createVersionedRoutes(version, routes);
+export const generateRoute = (
+  { 
+    version,
+    endpoint, 
+    method, 
+    service, 
+    requiresAuthorization = true
+  }: IRoute.IRoute
+): void => {
+  if (requiresAuthorization) {
+    (router as any)[method](`/${ version }/${ endpoint }`, appService.getAuthorization, appController.generateController(service));
+  } else {
+    (router as any)[method](`/${ version }/${ endpoint }`, appController.generateController(service));
   }
-);
+};
 
 router.use(
   (
@@ -79,4 +60,14 @@ router.use(
         }
       );
   }
+);
+
+generateRoute(
+  {
+    version: 'v1',
+    endpoint: `${ path.basename(process.cwd()) }/main/get/authentication`,
+    method: 'get',
+    service: appService.getAuthentication,
+    requiresAuthorization: false
+  } as IRoute.IRoute
 );

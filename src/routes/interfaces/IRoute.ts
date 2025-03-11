@@ -1,15 +1,14 @@
-import { RequestHandler } from 'express';
-
 /**
- * @interface IRoute
+ * ## IRoute
  * 
- * @describe Interface for route objects.
+ * Interface for route objects.
  * 
  * @description Defines the contract that all route objects must follow.
  */
 export interface IRoute {
+  version: string,
   endpoint: string,
   method: string,
-  controller: RequestHandler,
+  service: Function,
   requiresAuthorization?: boolean
 };

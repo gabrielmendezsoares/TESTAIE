@@ -1,11 +1,11 @@
-import { AxiosRequestConfig } from 'axios/index';
 import axios from 'axios';
+import { AxiosRequestConfig } from 'axios/index';
 import { IAuthenticationStrategy } from './interfaces';
 
 /**
- * @class BasicAndBearerTokenStrategy
+ * ## BasicAndBearerTokenStrategy
  * 
- * @describe Combined authentication strategy using Basic and Bearer tokens.
+ * Combined authentication strategy using Basic and Bearer tokens.
  * 
  * @description This strategy first obtains a Bearer token using Basic authentication
  * credentials, then uses that token for subsequent requests. The token is cached
@@ -16,39 +16,45 @@ import { IAuthenticationStrategy } from './interfaces';
  */
 export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
-   * @private
+   * ## bearerToken
    * 
-   * @describe Current bearer token obtained from the authentication endpoint.
+   * Current bearer token obtained from the authentication endpoint.
    * 
    * @description This token is used for subsequent requests until it expires.
+   * 
+   * @private
    */
   private bearerToken: string | null = null;
 
   /**
-   * @private
+   * ## tokenExpiresAt
    * 
-   * @describe Timestamp when the current token expires.
+   * Timestamp when the current token expires.
    * 
    * @description This timestamp is used to determine if the token is still valid.
+   * 
+   * @private
    */
   private tokenExpiresAt: number = 0;
 
   /**
-   * @public
+   * ## constructor
    * 
-   * @constructor
-   * 
-   * @describe Creates a new basic and bearer token authentication strategy.
+   * Creates a new basic and bearer token authentication strategy.
    * 
    * @description The strategy uses the provided username and password to obtain
    * a bearer token, which is then used for subsequent requests.
+   * 
+   * @public
+   * 
+   * @constructor
    * 
    * @param username - Username for basic auth.
    * @param password - Password for basic auth.
    * @param endpoint - The endpoint to request a token from.
    * @param tokenExpirationBuffer - Buffer time in ms before token expiration to refresh (default: 60000ms).
-   * @param tokenExtractor - Function to extract token from auth response (default extracts from data.token).
-   * @param expirationExtractor - Function to extract expiration from auth response (default extracts from data.expiresIn).
+   * @param tokenExtractor - Function to extract token from auth response (default extracts from data.data.token).
+   * @param expirationExtractor - Function to extract expiration from auth response (default extracts from data.data.expiresIn).
    */
   public constructor(
     /**
@@ -85,24 +91,26 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
      * @private
      * @readonly
      */
-    private readonly tokenExtractor: (response: any) => string = (response) => response.data.token,
+    private readonly tokenExtractor: (response: any) => string = (response) => response.data.data.token,
     
     /**
      * @private
      * @readonly
      */
-    private readonly expirationExtractor: (response: any) => number = (response) => response.data.expiresIn
+    private readonly expirationExtractor: (response: any) => number = (response) => response.data.data.expiresIn
   ) {}
 
   /**
-   * @private
+   * ## obtainToken
    * 
-   * @async
-   * 
-   * @describe Obtains a bearer token from the authentication endpoint.
+   * Obtains a bearer token from the authentication endpoint.
    * 
    * @description This method makes a request to the authentication endpoint using
    * the basic authentication credentials to obtain a bearer token.
+   * 
+   * @private
+   * 
+   * @async
    * 
    * @returns Promise resolving to the bearer token.
    * 
@@ -135,11 +143,13 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
   }
 
   /**
-   * @private
+   * ## isTokenValid
    * 
-   * @describe Checks if the current token is valid.
+   * Checks if the current token is valid.
    * 
    * @description This method checks if the current token exists and has not expired.
+   * 
+   * @private
    * 
    * @returns True if the token is valid, false otherwise.
    */
@@ -148,14 +158,16 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
   }
 
   /**
-   * @public
+   * ## authenticate
    * 
-   * @async
-   * 
-   * @describe Adds the bearer token to the request configuration.
+   * Adds the bearer token to the request configuration.
    * 
    * @description This method modifies the request configuration to include the bearer
    * token in the Authorization header. It obtains a new token if necessary.
+   * 
+   * @async
+   * 
+   * @public
    * 
    * @param configuration - The request configuration to authenticate.
    * 
@@ -186,12 +198,14 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
   }
 
   /**
-   * @public
+   * ## invalidateToken
    * 
-   * @describe Invalidates the current token.
+   * Invalidates the current token.
    * 
    * @description This method can be called to force the strategy to obtain a new token
    * on the next request, for example after receiving a 401 response.
+   * 
+   * @public
    */
   public invalidateToken(): void {
     this.bearerToken = null;

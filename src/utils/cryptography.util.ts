@@ -1,7 +1,9 @@
 import crypto from 'crypto';
 
 /**
- * @describe Encrypts plaintext data using AES-256-CBC algorithm.
+ * ## encryptToAes256Cbc
+ * 
+ * Encrypts plaintext data using AES-256-CBC algorithm.
  * 
  * @description This function implements the Advanced Encryption Standard (AES) with a 256-bit key
  * in Cipher Block Chaining (CBC) mode to securely encrypt sensitive data. The input
@@ -15,14 +17,8 @@ import crypto from 'crypto';
  * @returns Encrypted data in hex format.
  * 
  * @throws If the encryption key or IV are invalid or if encryption fails.
- * 
- * @example
- * const encryptionKey = '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
- * const ivString = '0123456789ABCDEF0123456789ABCDEF';
- * const data = 'Hello, World!';
- * const encryptedData = encryptToAes256Cbc(encryptionKey, ivString, data);
  */
-export const encryptToAes256CbcUtil = (
+export const encryptToAes256Cbc = (
   encryptionKey: string,
   ivString: string,
   data: string
@@ -42,7 +38,9 @@ export const encryptToAes256CbcUtil = (
 };
 
 /**
- * @describe Decrypts data that was encrypted using AES-256-CBC algorithm.
+ * ## decryptFromAes256Cbc
+ * 
+ * Decrypts data that was encrypted using AES-256-CBC algorithm.
  * 
  * @description This function reverses the encryption performed by {@link encryptToAes256Cbc}, transforming
  * the encrypted hex string back into the original plaintext. The same encryption key
@@ -55,14 +53,8 @@ export const encryptToAes256CbcUtil = (
  * @returns Decrypted plaintext string.
  * 
  * @throws If the encryption key or IV are invalid, if the encrypted data is malformed, or if decryption fails for any other reason (e.g., data tampering).
- * 
- * @example
- * const encryptionKey = '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
- * const ivString = '0123456789ABCDEF0123456789ABCDEF';
- * const encryptedData = '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF';
- * const decryptedData = decryptFromAes256Cbc(encryptionKey, ivString, encryptedData);
  */
-export const decryptFromAes256CbcUtil = (
+export const decryptFromAes256Cbc = (
   encryptionKey: string, 
   ivString: string, 
   encryptedData: string
