@@ -2,9 +2,9 @@ import { AxiosRequestConfig } from 'axios/index';
 import { IAuthenticationStrategy } from './interfaces';
 
 /**
- * @class BasicStrategy
+ * ## BasicStrategy
  * 
- * @describe Basic authentication strategy.
+ * Basic authentication strategy.
  * 
  * @description Implements authentication using basic in the Authorization header.
  * 
@@ -12,13 +12,15 @@ import { IAuthenticationStrategy } from './interfaces';
  */
 export class BasicStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
+   * ## constructor
+   * 
+   * Creates a new basic authentication strategy.
+   * 
+   * @description The strategy uses the provided username and password to authenticate requests.
+   * 
    * @public
    * 
    * @constructor
-   * 
-   * @describe Creates a new basic authentication strategy.
-   * 
-   * @description The strategy uses the provided username and password to authenticate requests.
    * 
    * @param username - Username for basic.
    * @param password - Password for basic.
@@ -38,12 +40,14 @@ export class BasicStrategy implements IAuthenticationStrategy.IAuthenticationStr
   ) {}
 
   /**
-   * @public
+   * ## authenticate
    * 
-   * @describe Adds basic credentials to the request configuration.
+   * Adds basic credentials to the request configuration.
    * 
    * @description This method modifies the request configuration to include the basic
    * credentials in the Authorization header.
+   * 
+   * @public
    * 
    * @param configuration - The request configuration to authenticate.
    * 

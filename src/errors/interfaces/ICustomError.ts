@@ -1,7 +1,7 @@
 /**
- * @interface ICustomError
+ * ## ICustomError
  * 
- * @describe Interface for custom error objects.
+ * Interface for custom error objects.
  * 
  * @description Defines the contract that all custom error objects must follow.
  */

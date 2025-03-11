@@ -1,5 +1,5 @@
-import 'dotenv/config';
 import cors from 'cors';
+import 'dotenv/config';
 import express, { Application, Request, Response } from 'express';
 import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
 import fs from 'fs/promises';
@@ -19,11 +19,13 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 100;
 
 /**
- * @async
+ * ## getAccessLog
  * 
- * @describe Creates an access log file in a dedicated logs directory.
- * 
+ * Creates an access log file in a dedicated logs directory.
+ *
  * @description Ensures the logs directory exists and opens a file handle for logging.
+ * 
+ * @async
  * 
  * @returns File handle for the access log file.
  * 
@@ -36,11 +38,15 @@ const getAccessLog = async (): Promise<fs.FileHandle> => {
 };
 
 /**
- * @describe Creates a rate limiter middleware for the Express application.
+ * ## getRateLimiter
  * 
+ * Creates a rate limiter middleware for the Express application.
+ *
  * @description Configures rate limiting to prevent excessive requests from a single IP.
+ * The limiter allows {@link RATE_LIMIT_MAX_REQUESTS} requests per IP address
+ * within a {@link RATE_LIMIT_WINDOW_MS} millisecond window.
  * 
- * @returns Configured rate limiter middleware.
+ * @returns Configured rate limiter middleware
  */
 const getRateLimiter = (): RateLimitRequestHandler => {
   return rateLimit(
@@ -72,11 +78,21 @@ const getRateLimiter = (): RateLimitRequestHandler => {
 };
 
 /**
+ * ## configureApp
+ * 
+ * Configures an Express application with middlewares and routes.
+ *
+ * @description Initializes an Express app with:
+ * - Trust proxy settings
+ * - Rate limiting
+ * - CORS support
+ * - Security headers via Helmet
+ * - JSON body parsing
+ * - Request logging to console and file
+ * - API routes
+ * - 404 handler for undefined routes
+ * 
  * @async
- * 
- * @describe Configures an Express application with middlewares and routes.
- * 
- * @description Initializes an Express app, configures middlewares and routes.
  * 
  * @returns Configured Express application.
  */
@@ -91,7 +107,6 @@ const configureApp = async (): Promise<Application> => {
   app.use(express.json());
   app.use(morgan('dev'));
   app.use(morgan('combined', { stream: accessLog.createWriteStream() }));
-  
   app.use('/api', appRoute.router);
 
   app.use(
@@ -119,11 +134,13 @@ const configureApp = async (): Promise<Application> => {
 };
 
 /**
+ * ## loadSSLCertificates
+ * 
+ * Loads SSL certificates from the SSL directory.
+ *
+ * @description Reads the certificate and private key files from the SSL directory.
+ * 
  * @async
- * 
- * @describe Loads SSL certificates from the SSL directory.
- * 
- * @description Reads the SSL certificates from the SSL directory.
  * 
  * @returns Object containing certificate and key strings.
  * 
@@ -141,12 +158,14 @@ const loadSSLCertificates = async (): Promise<{ cert: string, key: string }> => 
 };
 
 /**
+ * ## createServer
+ * 
+ * Creates a secure HTTPS server with the configured Express application.
+ *
+ * @description Initializes an Express app with all middleware and routes,
+ * loads SSL certificates, and creates an HTTPS server.
+ * 
  * @async
- * 
- * @describe Creates a secure HTTPS server with the configured Express application.
- * 
- * @description Initializes an Express app, configures middlewares and routes,
- * and creates an HTTPS server using SSL certificates.
  * 
  * @returns Configured HTTPS server instance.
  * 
