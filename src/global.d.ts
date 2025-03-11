@@ -13,5 +13,8 @@ declare namespace NodeJS {
    * 
    * @description Defines the contract that all process environment objects must follow.
    */
-  interface ProcessEnv { PORT: string | undefined; } 
+  interface ProcessEnv { 
+    PORT: string | undefined;
+    DATABASE_URL: string | undefined;
+  } 
 }
