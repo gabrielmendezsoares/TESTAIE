@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export const getTemplate = (
     req: Request, 
-    res: Response, 
+    _res: Response, 
     _next: NextFunction, 
     _timestamp: string
 ) => {
