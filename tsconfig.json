@@ -27,6 +27,6 @@
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": ["src/**/*"],
+  "include": ["expressium/src/**/*", "src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/access.log"]
 }
