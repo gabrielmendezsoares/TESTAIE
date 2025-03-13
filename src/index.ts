@@ -33,9 +33,9 @@ import { appService } from './services';
     generateRoute(
       {
         version: 'v1',
-        endpoint: `${ path.basename(process.cwd()) }/main/get/api-template`,
+        endpoint: `${ path.basename(process.cwd()) }/main/get/template`,
         method: 'get',
-        service: appService.getServiceTemplate,
+        service: appService.getTemplate,
         requiresAuthorization: false
       }
     )

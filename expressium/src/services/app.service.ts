@@ -4,8 +4,13 @@ import JWT, { Secret } from 'jsonwebtoken';
 import { StringValue } from 'ms';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { IReqBody, IResponse, IResponseData } from '../interfaces';
+import { IResponse, IResponseData } from '../interfaces';
 import { cryptographyUtil } from '../utils';
+
+const { 
+  JWT_SECRET_ENCRYPTION_KEY,
+  JWT_SECRET_IV_STRING
+} = process.env;
 
 const prisma = new PrismaClient();
 
@@ -70,12 +75,7 @@ export const getAuthentication = async (
     };
   }
 
-  const { 
-    jwtSecretEncryptionKey,
-    jwtSecretIvString
-  } = req.body as IReqBody.IReqBody;
-
-  if (!jwtSecretEncryptionKey) {
+  if (!JWT_SECRET_ENCRYPTION_KEY) {
     return { 
       status: 400, 
       data: { 
@@ -90,7 +90,7 @@ export const getAuthentication = async (
     };
   }
 
-  if (!jwtSecretIvString) {
+  if (!JWT_SECRET_IV_STRING) {
     return { 
       status: 400, 
       data: { 
@@ -207,8 +207,8 @@ export const getAuthentication = async (
     }
 
     const decryptedSecret = cryptographyUtil.decryptFromAes256Cbc(
-      jwtSecretEncryptionKey,
-      jwtSecretIvString,
+      JWT_SECRET_ENCRYPTION_KEY,
+      JWT_SECRET_IV_STRING,
       apiToken.secret
     ) as Secret;
   
