@@ -5,11 +5,13 @@ import { IAuthenticationStrategy } from './interfaces';
 /**
  * ## OAuth2Strategy
  * 
- * OAuth2 authentication strategy.
+ * Simple authentication strategy that uses OAuth2 tokens for authentication.
  * 
- * @description Handles OAuth2 token management including automatic refresh of expired tokens.
+ * @description The OAuth2Strategy class provides an
+ * authentication strategy that uses OAuth2 tokens for authentication. This strategy
+ * is useful for authenticating requests to APIs that require OAuth2 tokens for access.
  * 
- * @method authenticate - Authenticates a request, refreshing the token if necessary.
+ * @method authenticate - Authenticates the request by adding the OAuth2 token to the headers.
  * @method refresh - Refreshes the OAuth2 tokens.
  */
 export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationStrategy {
@@ -40,7 +42,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * Token expiration date.
    * 
-   * @description This property holds the date and time when the current access token expires.
+   * @description This property holds the expiration date of the current access token.
    * 
    * @private
    */
@@ -49,11 +51,9 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   /**
    * ## constructor
    * 
-   * Creates a new OAuth2 authentication strategy.
+   * Creates a new OAuth2Strategy instance.
    * 
-   * @description The strategy uses the provided OAuth2 client ID, client secret, and token URL
-   * to manage OAuth2 tokens. An initial token can be provided to start with a valid
-   * access token and refresh token.
+   * @description Initializes the OAuth2 client ID, client secret, token URL, and initial token data.
    * 
    * @public
    * 
@@ -61,10 +61,10 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * @param clientId - OAuth2 client ID.
    * @param clientSecret - OAuth2 client secret.
-   * @param tokenUrl - URL for token refresh requests.
-   * @param initialToken - Optional initial token data.
+   * @param tokenUrl - OAuth2 token URL.
+   * @param initialToken - Initial OAuth2 token data.
    * 
-   * @throws If no initial token is provided or token refresh fails.
+   * @throws If initial token data is missing.
    */
   public constructor(
     /**
@@ -110,7 +110,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
       /**
        * ## expiresIn
        * 
-       * Token expiration time in seconds.
+       * Initial access token expiration time.
        * 
        * @description This property holds the expiration time of the initial access token in seconds.
        */
@@ -133,21 +133,19 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   /**
    * ## authenticate
    * 
-   * Authenticates a request, refreshing the token if necessary.
+   * Authenticates the request by adding the OAuth2 token to the headers.
    * 
-   * @description This method checks if the current access token is valid and not expired.
-   * If the token is expired or missing, it attempts to refresh the token using
-   * the refresh token. If the refresh token is missing or invalid, an error is thrown.
+   * @description Adds the OAuth2 token to the headers of the request configuration.
    * 
    * @public
    * 
    * @async
    * 
-   * @param configuration - The request configuration to authenticate.
+   * @param configuration - The request configuration to modify.
    * 
-   * @returns Modified configuration with valid OAuth2 token.
+   * @returns The modified request configuration with the OAuth2 token added.
    * 
-   * @throws If authentication fails or tokens are invalid.
+   * @throws If no valid access token is available.
    */
   public async authenticate(configuration: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
     if (this.shouldRefresh()) {
@@ -170,13 +168,14 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
   /**
    * ## shouldRefresh
    * 
-   * Checks if the current token needs to be refreshed.
+   * Checks if the current access token is missing or expired.
    * 
-   * @description This method checks if the current access token is missing or expired.
+   * @description This method checks if the current access token is missing or expired. If the
+   * access token is missing or expired within the next 5 minutes, a token refresh is needed.
    * 
    * @private
    * 
-   * @returns True if token refresh is needed.
+   * @returns True if the access token is missing or expired, false otherwise.
    */
   private shouldRefresh(): boolean {
     return !this.accessToken 
@@ -189,14 +188,14 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * Refreshes the OAuth2 tokens.
    * 
-   * @description This method sends a token refresh request to the token URL using the current
-   * refresh token. If the refresh token is missing or invalid, an error is thrown.
+   * @description This method refreshes the OAuth2 tokens by sending a request to the token endpoint
+   * with the refresh token. If the refresh token is invalid or the request fails, an error is thrown.
    * 
    * @public
    * 
    * @async
    * 
-   * @throws If token refresh fails or refresh token is invalid.
+   * @throws If no refresh token is available.
    */
   public async refresh(): Promise<void> {
     if (!this.refreshToken) {

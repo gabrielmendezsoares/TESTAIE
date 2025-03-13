@@ -1,9 +1,11 @@
 /**
  * ## IRoute
  * 
- * Interface for route objects.
+ * Standard structure for route objects.
  * 
- * @description Defines the contract that all route objects must follow.
+ * @description Defines the contract that all route objects must follow when dealing with
+ * route configuration. This interface specifies the version, endpoint, method, service, and
+ * authorization requirements for a given route.
  */
 export interface IRoute {
   version: string,

@@ -4,26 +4,28 @@ import { IAuthenticationStrategy } from './interfaces';
 /**
  * ## BasicStrategy
  * 
- * Basic authentication strategy.
+ * Simple authentication strategy that adds basic credentials to the request configuration.
  * 
- * @description Implements authentication using basic in the Authorization header.
+ * @description The BasicStrategy class provides a simple authentication strategy
+ * that adds basic credentials to the request configuration. This strategy is useful
+ * for authenticating requests to APIs that require basic authentication.
  * 
- * @method authenticate - Adds basic credentials to the request configuration.
+ * @method authenticate - Authenticates the request by adding basic credentials to the configuration.
  */
 export class BasicStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
    * ## constructor
    * 
-   * Creates a new basic authentication strategy.
+   * Creates a new BasicStrategy instance.
    * 
-   * @description The strategy uses the provided username and password to authenticate requests.
+   * @description Initializes the username and password for the basic credentials.
    * 
    * @public
    * 
    * @constructor
    * 
-   * @param username - Username for basic.
-   * @param password - Password for basic.
+   * @param username - The username for basic authentication.
+   * @param password - The password for basic authentication.
    */
   public constructor(
     /**
@@ -42,16 +44,15 @@ export class BasicStrategy implements IAuthenticationStrategy.IAuthenticationStr
   /**
    * ## authenticate
    * 
-   * Adds basic credentials to the request configuration.
+   * Authenticates the request by adding basic credentials to the configuration.
    * 
-   * @description This method modifies the request configuration to include the basic
-   * credentials in the Authorization header.
+   * @description Adds the basic credentials to the request configuration.
    * 
    * @public
    * 
-   * @param configuration - The request configuration to authenticate.
+   * @param configuration - The request configuration to modify.
    * 
-   * @returns Modified configuration with basic.
+   * @returns The modified request configuration with the basic credentials added.
    */
   public authenticate(configuration: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
     return {

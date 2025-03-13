@@ -1,20 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
+import { IResponse, IResponseData } from '../../expressium/src';
 
-export const getTemplate = (
+export const getServiceTemplate = (
     req: Request, 
     _res: Response, 
     _next: NextFunction, 
-    _timestamp: string
-) => {
+    timestamp: string
+): IResponse.IResponse<IResponseData.IResponseData> => {
   return {
     status: 200,
     data: {
       status: true,
       statusCode: 200,
+      timestamp,
       path: req.originalUrl || req.url,
       method: req.method,
-      message: 'Template service function called successfully.',
-      suggestion: 'Modify this function to return the desired data.'
+      message: 'This is a template response.',
+      suggestion: 'Please replace this with your own implementation.'
     }
   };
 };

@@ -4,7 +4,7 @@ import JWT, { Secret } from 'jsonwebtoken';
 import { StringValue } from 'ms';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { IReqBody } from '../interfaces';
+import { IReqBody, IResponse, IResponseData } from '../interfaces';
 import { cryptographyUtil } from '../utils';
 
 const prisma = new PrismaClient();
@@ -37,7 +37,7 @@ export const getAuthentication = async (
   _res: Response,
   _next: NextFunction,
   timestamp: string
-) => {
+): Promise<IResponse.IResponse<IResponseData.IResponseData | IResponseData.IAuthenticationResponseData>> => {
   const reqHeadersAuthorization = req.headers.authorization;
   
   if (!reqHeadersAuthorization) {
@@ -82,6 +82,8 @@ export const getAuthentication = async (
         status: false,
         statusCode: 400,
         timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
         message: 'JWT secret encryption key is required.',
         suggestion: 'Include the JWT secret encryption key in your request body.'
       }
@@ -95,6 +97,8 @@ export const getAuthentication = async (
         status: false,
         statusCode: 400,
         timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
         message: 'JWT secret IV string is required.',
         suggestion: 'Include the JWT secret IV string in your request body.'
       }
@@ -213,7 +217,6 @@ export const getAuthentication = async (
       data: {
         username,
         roleList: user.role_list,
-        expiresIn,
         token: JWT.sign(
           {
             username,
@@ -222,7 +225,8 @@ export const getAuthentication = async (
           },
           decryptedSecret,
           { expiresIn: apiToken.expiration as StringValue }
-        )
+        ),
+        expiresIn
       }
     };
   } catch (error: unknown) {
