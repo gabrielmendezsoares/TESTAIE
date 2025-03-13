@@ -4,19 +4,21 @@ import { IAuthenticationStrategy } from './interfaces';
 /**
  * ## BearerTokenStrategy
  * 
- * Bearer token authentication strategy.
+ * Simple authentication strategy that adds a bearer token to the headers of a request.
  * 
- * @description Implements authentication using a bearer token in the Authorization header.
+ * @description The BearerTokenStrategy class provides a simple authentication strategy
+ * that adds a bearer token to the headers of a request. This strategy is useful for
+ * authenticating requests to APIs that require a bearer token for access. 
  * 
- * @method authenticate - Adds the bearer token to the request configuration.
+ * @method authenticate - Authenticates the request by adding the bearer token to the headers.
  */
 export class BearerTokenStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
    * ## constructor
    * 
-   * Creates a new bearer token authentication strategy.
+   * Creates a new BearerTokenStrategy instance.
    * 
-   * @description The strategy uses the provided bearer token to authenticate requests.
+   * @description Initializes the bearer token for the strategy.
    * 
    * @public
    * 
@@ -35,16 +37,15 @@ export class BearerTokenStrategy implements IAuthenticationStrategy.IAuthenticat
   /**
    * ## authenticate
    * 
-   * Adds the bearer token to the request configuration.
+   * Authenticates the request by adding the bearer token to the headers.
    * 
-   * @description This method modifies the request configuration to include the bearer
-   * token in the Authorization header.
+   * @description Adds the bearer token to the headers of the request configuration.
    * 
    * @public
    * 
-   * @param configuration - The request configuration to authenticate.
+   * @param configuration - The request configuration to modify.
    * 
-   * @returns Modified configuration with bearer token.
+   * @returns The modified request configuration with the bearer token added.
    */
   public authenticate(configuration: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
     return {

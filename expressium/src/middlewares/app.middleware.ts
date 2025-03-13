@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import JWT, { Secret } from 'jsonwebtoken';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { IReqBody } from '../interfaces';
+import { IReqBody, IResponse, IResponseData } from '../interfaces';
 import { cryptographyUtil } from '../utils';
 
 const prisma = new PrismaClient();
@@ -36,7 +36,7 @@ export const getAuthorization = async (
   _res: Response,
   next: NextFunction,
   timestamp: string
-) => {
+): Promise<IResponse.IResponse<IResponseData.IResponseData> | void> => {
   const reqHeadersAuthorization = req.headers.authorization;
 
   if (!reqHeadersAuthorization) {
@@ -66,6 +66,8 @@ export const getAuthorization = async (
         status: false,
         statusCode: 400,
         timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
         message: 'JWT secret encryption key is required.',
         suggestion: 'Include the JWT secret encryption key in your request body.'
       }
@@ -79,6 +81,8 @@ export const getAuthorization = async (
         status: false,
         statusCode: 400,
         timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
         message: 'JWT secret IV string is required.',
         suggestion: 'Include the JWT secret IV string in your request body.'
       }
@@ -140,7 +144,7 @@ export const getAuthorization = async (
       return;
     } catch(error: unknown) {
       if (error instanceof JWT.JsonWebTokenError) {
-        console.log(`Service | Timestamp: ${ timestamp } | Method: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
@@ -155,7 +159,7 @@ export const getAuthorization = async (
           }
         };
       } else if (error instanceof JWT.NotBeforeError) {
-        console.log(`Service | Timestamp: ${ timestamp } | Method: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
@@ -170,7 +174,7 @@ export const getAuthorization = async (
           }
         };
       } else if (error instanceof JWT.TokenExpiredError) {
-        console.log(`Service | Timestamp: ${ timestamp } | Method: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
@@ -189,7 +193,7 @@ export const getAuthorization = async (
       throw error;
     }
   } catch (error: unknown) {
-    console.log(`Service | Timestamp: ${ timestamp } | Method: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+    console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
     return {
       status: 500,

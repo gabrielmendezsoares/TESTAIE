@@ -1,21 +1,22 @@
 import axios from 'axios';
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios/index';
-import { IAuthenticationStrategy } from './strategies/interfaces';
 import { IHttpClientConfiguration } from './interfaces';
+import { IAuthenticationStrategy } from './strategies/interfaces';
 
 /**
  * ## HttpClient
  * 
- * Enhanced HTTP client built on Axios with support for authentication strategies,
- * automatic retries, and request/response interceptors.
+ * HTTP client for making requests to the server.
  * 
- * @description This client implements the singleton pattern to ensure a consistent configuration
- * across your application. It provides type-safe HTTP methods and standardized
- * error handling through the ApiError class.
+ * @description This class provides a simple interface for making HTTP requests
+ * to the server. It is built on top of the Axios library and provides a number
+ * of convenience methods for making common types of requests, such as GET, POST,
+ * PUT, PATCH, DELETE, HEAD, and OPTIONS. It also supports automatic retries for
+ * failed requests and can be configured with a variety of options to customize
+ * its behavior.
  *  
- * @method getInstance - Gets the singleton instance of the HTTP client.
  * @method setAuthenticationStrategy - Sets the current authentication strategy for the client.
- * @method clearAuthenticationStrategy - Clears the current authentication strategy for the client.
+ * @method clearAuthenticationStrategy - Clears the current authentication strategy.
  * @method request - Makes an HTTP request with the current authentication strategy.
  * @method get - Performs a GET request.
  * @method post - Performs a POST request.
@@ -27,26 +28,14 @@ import { IHttpClientConfiguration } from './interfaces';
  */
 export class HttpClient {
   /**
-   * ## instance
-   * 
-   * Singleton instance of the HTTP client.
-   * 
-   * @description The singleton pattern ensures that only one instance of the client is created
-   * and shared across the application. This allows for consistent configuration
-   * and centralized error handling.
-   * 
-   * @private
-   * @static
-   */
-  private static instance?: HttpClient;
-
-  /**
    * ## axiosInstance
    * 
-   * Axios instance used for making HTTP requests.
+   * Axios instance used to make requests to the server.
    * 
-   * @description The Axios instance is configured with the provided or default values
-   * and is used to make all HTTP requests.
+   * @description This Axios instance is used to make requests to the server. It
+   * is configured with the provided configuration and is used to apply the current
+   * authentication strategy to all requests. It is created using the createAxiosInstance
+   * method and is used to make requests using the request method.
    * 
    * @private
    * @readonly
@@ -58,8 +47,10 @@ export class HttpClient {
    * 
    * Current authentication strategy for the client.
    * 
-   * @description The authentication strategy will be applied to all subsequent requests
-   * until cleared via {@link clearAuthenticationStrategy}.
+   * @description This property stores the current authentication strategy for the
+   * client. It is used to apply the strategy to all subsequent requests and is set
+   * using the setAuthenticationStrategy method. It can be cleared using the
+   * clearAuthenticationStrategy method.
    * 
    * @private
    */
@@ -68,9 +59,12 @@ export class HttpClient {
   /**
    * ## DEFAULT_CONFIGURATION
    * 
-   * Default configuration values for the HTTP client.
+   * Default configuration values for the Axios instance.
    * 
-   * @description These values are used when no specific configuration is provided.
+   * @description This object contains the default configuration values for the
+   * Axios instance. It is used to ensure consistent behavior across requests and
+   * to provide sensible defaults for the client. It includes settings for automatic
+   * retries, default headers, and request timeout.
    * 
    * @private
    * @readonly
@@ -88,18 +82,17 @@ export class HttpClient {
   /**
    * ## constructor
    * 
-   * Private constructor to enforce singleton pattern.
+   * Creates a new HttpClient instance.
    * 
-   * @description The constructor initializes the Axios instance with the provided configuration
-   * and sets up request and response interceptors for automatic retries and error handling.
+   * @description Initializes a new HttpClient instance with the provided configuration.
    * 
-   * @private
+   * @public
    * 
    * @constructor
    * 
-   * @param configuration - Optional configuration for the client.
+   * @param configuration - Configuration for the HttpClient instance.
    */
-  private constructor(
+  public constructor(
     /**
      * @public
      */
@@ -111,40 +104,19 @@ export class HttpClient {
   }
 
   /**
-   * ## getInstance
-   * 
-   * Gets the singleton instance of the HTTP client.
-   * 
-   * @description If no instance exists, a new one is created with the provided configuration.
-   * If an instance already exists, it is returned unchanged (the configuration is ignored).
-   * 
-   * @public
-   * @static
-   * 
-   * @param configuration - Optional configuration for the client.
-   * 
-   * @returns The singleton HTTP client instance.
-   */
-  public static getInstance(configuration?: IHttpClientConfiguration.IHttpClientConfiguration): HttpClient {
-    if (!HttpClient.instance) {
-      HttpClient.instance = new HttpClient(configuration);
-    }
-    
-    return HttpClient.instance;
-  }
-
-  /**
    * ## createAxiosInstance
    * 
-   * Creates an instance of Axios with the provided configuration.
+   * Creates a new Axios instance with the provided configuration.
    * 
-   * @description The configuration is merged with the default values to ensure consistency.
+   * @description This method is used to create a new Axios instance with the provided
+   * configuration. It is used to ensure that the client has a consistent configuration
+   * across all requests and to provide sensible defaults for the client.
    * 
    * @private
    * 
-   * @param configuration - Optional configuration for the Axios instance.
+   * @param configuration - Configuration for the Axios instance.
    * 
-   * @returns Configured Axios instance.
+   * @returns Axios instance with the provided configuration.
    */
   private createAxiosInstance(configuration?: IHttpClientConfiguration.IHttpClientConfiguration): AxiosInstance {
     return axios.create<any>(
@@ -161,12 +133,14 @@ export class HttpClient {
    * 
    * Sets the current authentication strategy for the client.
    * 
-   * @description The authentication strategy will be applied to all subsequent requests
-   * until cleared via {@link clearAuthenticationStrategy}.
+   * @description This method is used to set the current authentication strategy for
+   * the client. It is used to apply the strategy to all subsequent requests made by
+   * the client. The strategy can be any object that implements the IAuthenticationStrategy
+   * interface and provides an authenticate method.
    * 
    * @public
    * 
-   * @param strategy - The authentication strategy to use.
+   * @param strategy - Authentication strategy to use for the client.
    */
   public setAuthenticationStrategy(strategy: IAuthenticationStrategy.IAuthenticationStrategy): void {
     this.authenticationStrategy = strategy;
@@ -175,10 +149,11 @@ export class HttpClient {
   /**
    * ## clearAuthenticationStrategy
    * 
-   * Clears the current authentication strategy for the client.
+   * Clears the current authentication strategy.
    * 
-   * @description Subsequent requests will be made without authentication
-   * until a new strategy is set.
+   * @description This method is used to clear the current authentication strategy for
+   * the client. It is used to remove the strategy from the client and prevent it from
+   * being applied to subsequent requests.
    * 
    * @public
    */
@@ -189,19 +164,15 @@ export class HttpClient {
   /**
    * ## setupInterceptors
    * 
-   * Sets up request and response interceptors.
+   * Configures request and response interceptors for the Axios instance.
    * 
-   * @description Request interceptors:
-   * - Add a unique X-Request-ID header to each request
-   * - Apply the current authentication strategy if set
-   * 
-   * Response interceptors:
-   * - Implement automatic retry for failed requests with exponential backoff
-   * - Normalize errors into ApiError format
+   * @description This method is used to configure request and response interceptors
+   * for the Axios instance. It is used to apply the current authentication strategy
+   * to all requests and to handle automatic retries for failed requests.
    * 
    * @private
    * 
-   * @param retryConfiguration - Optional retry configuration.
+   * @param retryConfiguration - Configuration for the retry interceptor.
    */
   private setupInterceptors(retryConfiguration?: IHttpClientConfiguration.IHttpClientConfiguration['retry']): void {
     const retry = { 
@@ -263,8 +234,10 @@ export class HttpClient {
    * 
    * Makes an HTTP request with the current authentication strategy.
    * 
-   * @description This is the core method used by the specific HTTP method helpers.
-   * It allows for direct control over the request method, URL, data, and options.
+   * @description This method is used to make an HTTP request to the server using the
+   * current authentication strategy. It applies the strategy to the request configuration
+   * and sends the request to the server. If the request fails, it will be retried according
+   * to the retry configuration provided when the client was created.
    * 
    * @public
    * 
@@ -272,10 +245,10 @@ export class HttpClient {
    * 
    * @template T - Type of the expected response data.
    * 
-   * @param method - HTTP method (GET, POST, etc.).
+   * @param method - Request method to use.
    * @param url - Request URL.
-   * @param data - Optional request body data.
-   * @param options - Optional request options.
+   * @param data - Request data to send.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -285,14 +258,14 @@ export class HttpClient {
     method: string,
     url: string,
     data?: unknown,
-    options: AxiosRequestConfig<any> = {}
+    configuration: AxiosRequestConfig<any> = {}
   ): Promise<AxiosResponse<T, any>> {
     return this.axiosInstance.request<T>(
       {
         method,
         url,
         data,
-        ...options
+        ...configuration
       }
     );
   }
@@ -302,8 +275,7 @@ export class HttpClient {
    * 
    * Performs a GET request.
    * 
-   * @description This method is used to retrieve a resource identified by the URL.
-   * For example, it can be used to fetch data from an API endpoint.
+   * @description This method is used to perform a GET request to the server.
    * 
    * @public
    * 
@@ -312,7 +284,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -320,9 +292,9 @@ export class HttpClient {
    */
   public async get<T>(
     url: string, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('GET', url, undefined, options);
+    return this.request<T>('GET', url, undefined, configuration);
   }
 
   /**
@@ -330,8 +302,7 @@ export class HttpClient {
    * 
    * Performs a POST request.
    * 
-   * @description This method is used to create a new resource identified by the URL.
-   * For example, it can be used to submit a form or upload a file.
+   * @description This method is used to perform a POST request to the server.
    * 
    * @public
    * 
@@ -340,7 +311,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -349,9 +320,9 @@ export class HttpClient {
   public async post<T>(
     url: string, 
     data?: unknown, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('POST', url, data, options);
+    return this.request<T>('POST', url, data, configuration);
   }
 
   /**
@@ -359,8 +330,7 @@ export class HttpClient {
    * 
    * Performs a PUT request.
    * 
-   * @description This method is used to create or update a resource identified by the URL.
-   * For example, it can be used to save a new user account or update a database record.
+   * @description This method is used to perform a PUT request to the server.
    * 
    * @public
    * 
@@ -369,7 +339,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -378,9 +348,9 @@ export class HttpClient {
   public async put<T>(
     url: string, 
     data?: unknown, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('PUT', url, data, options);
+    return this.request<T>('PUT', url, data, configuration);
   }
 
   /**
@@ -388,8 +358,7 @@ export class HttpClient {
    * 
    * Performs a PATCH request.
    * 
-   * @description This method is used to update a resource identified by the URL.
-   * For example, it can be used to modify a user profile or a database record.
+   * @description This method is used to perform a PATCH request to the server.
    * 
    * @public
    * 
@@ -398,7 +367,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -407,9 +376,9 @@ export class HttpClient {
   public async patch<T>(
     url: string, 
     data?: unknown, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('PATCH', url, data, options);
+    return this.request<T>('PATCH', url, data, configuration);
   }
 
   /**
@@ -417,8 +386,7 @@ export class HttpClient {
    * 
    * Performs a DELETE request.
    * 
-   * @description This method is used to delete a resource identified by the URL.
-   * For example, it can be used to remove a user account or a database record.
+   * @description This method is used to perform a DELETE request to the server.
    * 
    * @public
    * 
@@ -427,7 +395,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -435,9 +403,9 @@ export class HttpClient {
    */
   public async delete<T>(
     url: string, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('DELETE', url, undefined, options);
+    return this.request<T>('DELETE', url, undefined, configuration);
   }
 
   /**
@@ -445,8 +413,7 @@ export class HttpClient {
    * 
    * Performs a HEAD request.
    * 
-   * @description This method is used to retrieve the headers of a resource without fetching the body.
-   * For example, it can be used to check if a resource exists or to get metadata.
+   * @description This method is used to perform a HEAD request to the server.
    * 
    * @public
    * 
@@ -455,7 +422,7 @@ export class HttpClient {
    * @template T - Type of the expected response data.
    * 
    * @param url - Request URL.
-   * @param options - Optional request options.
+   * @param configuration - Request configuration.
    * 
    * @returns Promise resolving to the typed response.
    * 
@@ -463,36 +430,8 @@ export class HttpClient {
    */
   public async head<T>(
     url: string, 
-    options?: Partial<AxiosRequestConfig<any>>
+    configuration?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('HEAD', url, undefined, options);
-  }
-
-  /**
-   * ## options
-   * 
-   * Performs a OPTIONS request.
-   * 
-   * @description This method is used to describe the communication options for the target resource.
-   * For example, it can be used to determine the supported methods, headers, and other details.
-   * 
-   * @public
-   * 
-   * @async
-   * 
-   * @template T - Type of the expected response data.
-   * 
-   * @param url - Request URL.
-   * @param options - Optional request options.
-   * 
-   * @returns Promise resolving to the typed response.
-   * 
-   * @throws If the request fails.
-   */
-  public async options<T>(
-    url: string, 
-    options?: Partial<AxiosRequestConfig<any>>
-  ): Promise<AxiosResponse<T, any>> {
-    return this.request<T>('OPTIONS', url, undefined, options);
+    return this.request<T>('HEAD', url, undefined, configuration);
   }
 }

@@ -1,4 +1,7 @@
 import { IncomingMessage, Server, ServerResponse } from 'http';
+import { ApiError, BaseError } from './errors';
+import { ICustomError } from './errors/interfaces';
+import { IReqBody, IResponse, IResponseData } from './interfaces';
 import { appRoute } from './routes';
 import { IRoute } from './routes/interfaces';
 import { cryptographyUtil, dateTimeFormatterUtil, HttpClientUtil } from './utils';
@@ -10,25 +13,28 @@ import appModule, { createServer } from './app.module';
 /**
  * ## global
  * 
- * Extends the global NodeJS module with custom properties.
+ * Global type declarations for the NodeJS environment.
  * 
- * @description Adds custom properties to the NodeJS module to provide type guards.
+ * @description Extends the global NodeJS namespace with additional type definitions
+ * for environment variables and other custom properties. This helps provide
+ * type safety and autocompletion when accessing process.env values.
  */
 declare global {
   /**
    * ## ObjectConstructor
    * 
-   * Extends the Object interface with custom methods.
+   * Type definitions for custom methods added to the Object interface.
    * 
-   * @description Adds custom methods to the Object interface to provide type guards.
+   * @description Defines additional methods that are added to the Object interface
+   * to provide type guards and other utility functions for object manipulation.
    */
   interface ObjectConstructor {
     /**
      * ## isObject
      * 
-     * Type guard that checks if a value is a non-null object.
+     * Type guard that checks if a value is an object.
      * 
-     * @description Determines if the input is a non-null, non-array object unless arrays are explicitly included.
+     * @description Determines if the input is an object using reliable type checking.
      * 
      * @param element - Value to check.
      * @param includeArrays - When true, arrays are considered objects.
@@ -42,7 +48,7 @@ declare global {
      * 
      * Type guard that checks if a value is a string.
      * 
-     * @description Determines if the input is a string primitive using reliable type checking.
+     * @description Determines if the input is a string using reliable type checking.
      * 
      * @param element - Value to check.
      * 
@@ -204,6 +210,12 @@ export default appModule;
 export const generateRoute = appRoute.generateRoute;
 
 export { 
+  ApiError,
+  BaseError,
+  ICustomError,
+  IReqBody,
+  IResponse,
+  IResponseData,
   IRoute, 
   cryptographyUtil, 
   dateTimeFormatterUtil, 

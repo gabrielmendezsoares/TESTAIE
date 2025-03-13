@@ -3,6 +3,13 @@ import path from 'path';
 import 
     app, 
     { 
+      ApiError,
+      BaseError,
+      ICustomError,
+      IReqBody,
+      IResponse,
+      IResponseData,
+      generateRoute,
       IRoute, 
       cryptographyUtil, 
       dateTimeFormatterUtil, 
@@ -14,7 +21,6 @@ import
       BearerTokenStrategy, 
       OAuth2Strategy,
       IAuthenticationStrategy,
-      generateRoute,
       createServer,
       startServer
     } 
@@ -27,9 +33,9 @@ import { appService } from './services';
     generateRoute(
       {
         version: 'v1',
-        endpoint: `${ path.basename(process.cwd()) }/main/get/template`,
+        endpoint: `${ path.basename(process.cwd()) }/main/get/api-template`,
         method: 'get',
-        service: appService.getTemplate,
+        service: appService.getServiceTemplate,
         requiresAuthorization: false
       }
     )

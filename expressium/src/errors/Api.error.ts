@@ -4,25 +4,29 @@ import { BaseError } from './Base.error';
 /**
  * ## ApiError
  * 
- * Base class for API errors.
+ * API-specific error implementation for handling HTTP request failures.
  * 
- * @description This class extends the BaseError class and implements the ICustomError interface.
+ * @description ApiError represents errors that occur during API operations. It provides
+ * standardized error reporting with HTTP status codes, error messages, and
+ * error codes to help with debugging and client response handling.
  */
 export class ApiError extends BaseError implements ICustomError.ICustomError {
   /**
    * ## constructor
    * 
-   * Creates an ApiError instance.
+   * Creates a new ApiError instance.
    * 
-   * @description Initializes a new API error with message, code and status.
+   * @description Initializes a new API error with the specified message, code, and HTTP status.
+   * The error is automatically configured with standard properties inherited from
+   * BaseError while adding API-specific error handling.
    * 
    * @public
    * 
    * @constructor
    * 
-   * @param message - Error message.
-   * @param code - Error code (default: 'API_ERROR').
-   * @param status - HTTP status code (default: 500).
+   * @param message - Human-readable description of the error.
+   * @param code - Machine-readable error code for programmatic handling.
+   * @param status - HTTP status code to return to the client.
    */
   public constructor(
     /**
