@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { IResponse, IResponseData } from '../../expressium/src';
 
-export const getServiceTemplate = (
+export const getTemplate = (
     req: Request, 
     _res: Response, 
     _next: NextFunction, 
