@@ -1,14 +1,8 @@
-import path from 'path';
-
 import 
     app, 
     { 
       ApiError,
       BaseError,
-      ICustomError,
-      IReqBody,
-      IResponse,
-      IResponseData,
       generateRoute,
       IRoute, 
       cryptographyUtil, 
@@ -26,19 +20,11 @@ import
     } 
 from '../expressium/src';
 
-import { appService } from './services';
+import { appRoute } from './routes';
 
 (
   async (): Promise<void> => {
-    generateRoute(
-      {
-        version: 'v1',
-        endpoint: `${ path.basename(process.cwd()) }/main/get/template`,
-        method: 'get',
-        service: appService.getTemplate,
-        requiresAuthorization: false
-      }
-    )
+    appRoute.generateRoutes();
 
     const resolvedAppModule = await createServer();
     

@@ -1,7 +1,5 @@
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { ApiError, BaseError } from './errors';
-import { ICustomError } from './errors/interfaces';
-import { IReqBody, IResponse, IResponseData } from './interfaces';
 import { appRoute } from './routes';
 import { IRoute } from './routes/interfaces';
 import { cryptographyUtil, dateTimeFormatterUtil, HttpClientUtil } from './utils';
@@ -212,10 +210,6 @@ export const generateRoute = appRoute.generateRoute;
 export { 
   ApiError,
   BaseError,
-  ICustomError,
-  IReqBody,
-  IResponse,
-  IResponseData,
   IRoute, 
   cryptographyUtil, 
   dateTimeFormatterUtil, 

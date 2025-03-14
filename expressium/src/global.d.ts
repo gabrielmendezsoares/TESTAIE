@@ -37,5 +37,25 @@ declare namespace NodeJS {
      * necessary authentication credentials and connection parameters.
      */
     DATABASE_URL: string | undefined;
+
+    /**
+     * ## JWT_SECRET
+     * 
+     * JSON Web Token secret key environment variable.
+     * 
+     * @description Secret key used to sign and verify JSON Web Tokens. This key should
+     * be kept secret and not shared publicly.
+     */
+    JWT_SECRET: string | undefined;
+
+    /**
+     * ## JWT_EXPIRES_IN
+     * 
+     * JSON Web Token expiration time environment variable.
+     * 
+     * @description Expiration time for JSON Web Tokens. This value should be a string
+     * representing a time span or a number representing seconds.
+     */
+    JWT_EXPIRES_IN: string | undefined;
   } 
 }

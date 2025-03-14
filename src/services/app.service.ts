@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IResponse, IResponseData } from '../../expressium/src';
+import { IResponse, IResponseData } from '../interfaces';
 
 export const getTemplate = (
     req: Request, 
