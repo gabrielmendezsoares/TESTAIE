@@ -55,7 +55,7 @@ const getAccessLog = async (): Promise<fs.FileHandle> => {
  * The limiter allows {@link RATE_LIMIT_MAX_REQUESTS} requests per IP address
  * within a {@link RATE_LIMIT_WINDOW_MS} millisecond window.
  * 
- * @returns Configured rate limiter middleware
+ * @returns Configured rate limiter middleware.
  */
 const getRateLimiter = (): RateLimitRequestHandler => {
   return rateLimit(

@@ -1,21 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import JWT, { Secret } from 'jsonwebtoken';
-import path from 'path';
-import { PrismaClient } from '@prisma/client';
+import JWT from 'jsonwebtoken';
 import { IResponse, IResponseData } from '../interfaces';
-import { cryptographyUtil } from '../utils';
 
-const {
-  JWT_SECRET_ENCRYPTION_KEY,
-  JWT_SECRET_IV_STRING
-} = process.env;
-
-const prisma = new PrismaClient();
+const { JWT_SECRET } = process.env;
 
 /**
  * ## getAuthorization
  * 
- * Authorizes requests using JWT token verification
+ * Authorizes requests using JWT token verification.
  * 
  * @description This middleware function validates JWT tokens provided in the Authorization
  * header for subsequent API requests after initial authentication. It verifies
@@ -42,6 +34,21 @@ export const getAuthorization = async (
   next: NextFunction,
   timestamp: string
 ): Promise<IResponse.IResponse<IResponseData.IResponseData> | void> => {
+  if (!JWT_SECRET) {
+    return { 
+      status: 500, 
+      data: {
+        status: false,
+        statusCode: 500,
+        timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
+        message: 'API configuration not found.',
+        suggestion: 'The requested API type is not properly configured in the system.' 
+      }
+    };
+  }
+
   const reqHeadersAuthorization = req.headers.authorization;
 
   if (!reqHeadersAuthorization) {
@@ -59,64 +66,9 @@ export const getAuthorization = async (
     };
   }
 
-  if (!JWT_SECRET_ENCRYPTION_KEY) {
-    return { 
-      status: 400, 
-      data: { 
-        status: false,
-        statusCode: 400,
-        timestamp,
-        path: req.originalUrl || req.url,
-        method: req.method,
-        message: 'JWT secret encryption key is required.',
-        suggestion: 'Include the JWT secret encryption key in your request body.'
-      }
-    };
-  }
-
-  if (!JWT_SECRET_IV_STRING) {
-    return { 
-      status: 400, 
-      data: { 
-        status: false,
-        statusCode: 400,
-        timestamp,
-        path: req.originalUrl || req.url,
-        method: req.method,
-        message: 'JWT secret IV string is required.',
-        suggestion: 'Include the JWT secret IV string in your request body.'
-      }
-    };
-  }
-
-  const applicationType = path.basename(process.cwd());
-
   try {
-    const apiToken = await prisma.api_tokens.findUnique({ where: { api_type: applicationType } }) || undefined;
-
-    if (!apiToken) {
-      return { 
-        status: 500, 
-        data: {
-          status: false,
-          statusCode: 500,
-          timestamp,
-          path: req.originalUrl || req.url,
-          method: req.method,
-          message: 'API configuration not found.',
-          suggestion: 'The requested API type is not properly configured in the system.' 
-        }
-      };
-    }
-
-    const decryptedSecret = cryptographyUtil.decryptFromAes256Cbc(
-      JWT_SECRET_ENCRYPTION_KEY,
-      JWT_SECRET_IV_STRING,
-      apiToken.secret
-    ) as Secret;
-
     try {
-      const decodedToken = JWT.verify(reqHeadersAuthorization, decryptedSecret);
+      const decodedToken = JWT.verify(reqHeadersAuthorization, JWT_SECRET);
 
       if (
         Object.isObject(decodedToken) && 
