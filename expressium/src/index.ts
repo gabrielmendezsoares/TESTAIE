@@ -1,21 +1,24 @@
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { ApiError, BaseError } from './errors';
 import { appRoute } from './routes';
-import { IRoute } from './routes/interfaces';
+import { IRouteMap } from './routes/interfaces';
 import { cryptographyUtil, dateTimeFormatterUtil, HttpClientUtil } from './utils';
-import { IHttpClientConfiguration } from './utils/interfaces';
+import { IConfigurationMap } from './utils/interfaces';
 import { ApiKeyStrategy, BasicStrategy, BasicAndBearerTokenStrategy, BearerTokenStrategy, OAuth2Strategy } from './utils/strategies';
 import { IAuthenticationStrategy } from './utils/strategies/interfaces';
-import appModule, { createServer } from './app.module';
+import { createServer } from './app.module';
 
 /**
  * ## global
  * 
  * Global type declarations for the NodeJS environment.
  * 
- * @description Extends the global NodeJS namespace with additional type definitions
- * for environment variables and other custom properties. This helps provide
- * type safety and autocompletion when accessing process.env values.
+ * @description This namespace extends the global NodeJS namespace with additional type definitions
+ * for environment variables and custom properties. These declarations ensure type safety
+ * and enable IDE autocompletion for custom extensions to built-in JavaScript objects.
+ * 
+ * The declarations here apply to the entire application and allow TypeScript to properly
+ * type-check both built-in and custom functionality on standard objects.
  */
 declare global {
   /**
@@ -23,8 +26,12 @@ declare global {
    * 
    * Type definitions for custom methods added to the Object interface.
    * 
-   * @description Defines additional methods that are added to the Object interface
-   * to provide type guards and other utility functions for object manipulation.
+   * @description This interface augmentation extends JavaScript's built-in Object constructor
+   * with additional type guard utility methods. These methods enhance type safety
+   * when working with values of unknown type that need validation before use.
+   * 
+   * The methods defined here can be used throughout the application to perform
+   * reliable type checking that works correctly with TypeScript's type system.
    */
   interface ObjectConstructor {
     /**
@@ -32,12 +39,18 @@ declare global {
      * 
      * Type guard that checks if a value is an object.
      * 
-     * @description Determines if the input is an object using reliable type checking.
+     * @description This method provides a reliable way to determine if a value is an object
+     * using proper type checking that works with TypeScript's type system.
+     * It considers null as non-object (unlike typeof) and handles arrays
+     * according to the includeArrays parameter.
      * 
-     * @param element - Value to check.
-     * @param includeArrays - When true, arrays are considered objects.
+     * Use this method when you need to verify that a value is an object before
+     * performing object-specific operations on it.
      * 
-     * @returns True if the element is an object.
+     * @param element - The value to check, typically of unknown type.
+     * @param includeArrays - When true, arrays are considered objects; when false (default), arrays are not considered objects.
+     * 
+     * @returns A boolean indicating whether the value is an object, with type guard functionality.
      */
     isObject(element: unknown, includeArrays?: boolean): element is object;
 
@@ -46,11 +59,17 @@ declare global {
      * 
      * Type guard that checks if a value is a string.
      * 
-     * @description Determines if the input is a string using reliable type checking.
+     * @description This method provides a reliable way to determine if a value is a string
+     * using Object.prototype.toString, which correctly identifies string primitives 
+     * and String objects. This is more reliable than the typeof operator for
+     * certain edge cases.
      * 
-     * @param element - Value to check.
+     * Use this method when you need to verify that a value is a string before
+     * performing string-specific operations on it.
      * 
-     * @returns True if the element is a string.
+     * @param element - The value to check, typically of unknown type.
+     * 
+     * @returns A boolean indicating whether the value is a string, with type guard functionality.
      */
     isString(element: unknown): element is string;
   }
@@ -73,17 +92,23 @@ const SHUTDOWN_SIGNALS = ['SIGTERM', 'SIGINT'] as const;
  * 
  * Sets up periodic status logging to indicate server health.
  * 
- * @description Initializes an interval timer that logs server port every {@link LOG_INTERVAL} milliseconds
- * and ensures it doesn't prevent process exit by using unref().
+ * @description This function initializes a recurring interval timer that logs server status information
+ * to provide ongoing visibility into server health. It logs the current timestamp and
+ * port number at regular intervals defined by {@link LOG_INTERVAL} (in milliseconds).
  * 
- * @returns Timer reference that can be cleared if needed.
+ * The timer is configured with unref() to ensure it doesn't prevent the Node.js process
+ * from exiting if it's the only remaining event scheduled. This is important for proper
+ * server shutdown handling.
+ * 
+ * @returns A timer reference that can be used with clearInterval if needed.
  */
 const setupPeriodicLogging = (): NodeJS.Timeout => {
-  const logTimer = setInterval((): void => console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Port: ${ PORT }`), LOG_INTERVAL);
-
-  logTimer.unref();
-
-  return logTimer;
+  return setInterval(
+    (): void => {
+      console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Port: ${ PORT }`);
+    }, 
+    LOG_INTERVAL
+  ).unref();
 };
 
 /**
@@ -91,10 +116,22 @@ const setupPeriodicLogging = (): NodeJS.Timeout => {
  * 
  * Configures graceful shutdown handlers for the server.
  * 
- * @description Sets up signal handlers for graceful shutdown with a 5-second timeout fallback
- * to force termination if graceful shutdown takes too long. Handles {@link SHUTDOWN_SIGNALS}.
+ * @description This function establishes signal handlers for graceful server shutdown, ensuring that
+ * in-flight requests can complete before the server exits. It listens for the following signals:
  * 
- * @param server - HTTPS server instance to shut down.
+ * - SIGTERM: Standard termination signal
+ * - SIGINT: Interrupt from keyboard (Ctrl+C)
+ * 
+ * When a shutdown signal is received, the function:
+ * 
+ * 1. Logs the shutdown initiation
+ * 2. Calls server.close() to stop accepting new connections while existing ones complete
+ * 3. Sets up a 5-second safety timeout that forces process termination if graceful shutdown hangs
+ * 
+ * The safety timeout uses unref() to ensure it doesn't prevent the process from exiting
+ * naturally when graceful shutdown completes successfully.
+ * 
+ * @param server - The HTTP/HTTPS server instance to shut down gracefully.
  */
 const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof ServerResponse>): void => {
   SHUTDOWN_SIGNALS.forEach(
@@ -129,19 +166,29 @@ const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof Ser
  * 
  * Initializes and starts the HTTPS server.
  * 
- * @description Starts the server on the configured port, sets up periodic logging,
- * graceful shutdown handlers, and error handling. Listens for server errors
- * and handles them appropriately.
+ * @description This function is the main entry point for starting the application server. It performs
+ * the following operations:
+ * 
+ * 1. Starts the server on the port specified by the PORT environment variable (defaults to 3000)
+ * 2. Sets up periodic status logging to monitor server health
+ * 3. Configures graceful shutdown handlers to ensure clean application termination
+ * 4. Establishes error handlers for server-specific errors (e.g., port conflicts)
+ * 
+ * The function implements comprehensive error handling to ensure that any startup errors
+ * are properly logged and the process exits with an appropriate status code. This includes
+ * special handling for the EADDRINUSE error, which occurs when the specified port is already in use.
  * 
  * @async
  * 
- * @param resolvedAppModule - The resolved Express application module.
+ * @param serverInstance - The configured HTTPS server instance ready to listen.
  * 
- * @throws Will exit process on critical errors.
+ * @throws If the server fails to start or encounters runtime errors.
+ * 
+ * @returns A promise that resolves when the server starts successfully.
  */
-export const startServer = async (resolvedAppModule: Server): Promise<void> => {
+const startServer = async (serverInstance: Server): Promise<void> => {
   try {
-    const server = resolvedAppModule.listen(
+    const server = serverInstance.listen(
       PORT, 
       (): void => {
         console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: Server started`);
@@ -185,36 +232,54 @@ process.on(
   }
 );
 
-export default appModule;
+export default startServer;
 
 /**
  * ## generateRoute
  * 
- * Creates and registers a single API route.
+ * Creates and registers a single API route with the Express router.
  * 
- * @description This function registers a route with the Express router:
- *  - Adds an optional authorization middleware based on configuration
- *  - Applies the appropriate HTTP method handler
- *  - Constructs the full route path with version prefix
- *  - Attaches the service function wrapped in a controller
+ * @description This function provides a standardized way to define and register API routes throughout the application.
+ * It encapsulates the complete route registration process, handling version validation, path construction,
+ * middleware application, and controller integration.
  * 
- * @param routeConfig - The route configuration object.
- * @param routeConfig.version - The API version identifier (e.g., 'v1', 'v2').
- * @param routeConfig.endpoint - The endpoint path (excluding version prefix).
- * @param routeConfig.method - The HTTP method (get, post, put, delete, etc.).
- * @param routeConfig.service - The service function to handle the route.
- * @param routeConfig.requiresAuthorization - Whether the route requires authorization (defaults to true).
+ * Key features:
+ * 
+ * - Version validation: Ensures API versions follow the required format using regex validation
+ * - Path construction: Automatically builds URL paths with consistent version prefixing
+ * - Middleware integration: Handles authorization and custom middleware sequences
+ * - Error handling: Logs validation errors and prevents invalid routes from registering
+ * - Controller wrapping: Integrates with application controller for standardized request handling
+ * 
+ * This unified route generation approach ensures consistency across the API and simplifies
+ * the route definition process while enforcing architectural patterns.
+ * 
+ * Route authorization can be optionally disabled for public endpoints like health checks,
+ * authentication endpoints, or public API documentation.
+ * 
+ * @param routeConfig - The complete route configuration object.
+ * @param routeConfig.method - The HTTP method to use (get, post, put, delete, patch, etc.). Must be a valid method name supported by Express Router.
+ * @param routeConfig.version - The API version identifier (e.g., 'v1', 'v2'). Must match the pattern 'v' followed by a number (e.g., v1, v2, v10).
+ * @param routeConfig.endpoint - The endpoint path excluding the version prefix. Can include route parameters (e.g., 'users/:id/profile') and should not have a leading slash.
+ * @param routeConfig.middlewareList - Optional array of middleware functions. These will be executed in the provided order after authorization (if enabled).
+ * @param routeConfig.service - The service function containing the business logic. Will be wrapped by the application controller for standardized request/response handling.
+ * @param routeConfig.requiresAuthorization - Whether the route requires authorization. When true, the authorization middleware will be applied before any custom middleware. When false, the route will be publicly accessible without authentication.
+ * 
+ * @throws The function catches and logs validation errors, preventing invalid routes from registering.
+ * It does not throw errors to the caller, ensuring application stability even with invalid route definitions.
+ * 
+ * @returns The function registers the route with Express but does not return a value.
  */
 export const generateRoute = appRoute.generateRoute;
 
 export { 
   ApiError,
   BaseError,
-  IRoute, 
+  IRouteMap, 
   cryptographyUtil, 
   dateTimeFormatterUtil, 
   HttpClientUtil,
-  IHttpClientConfiguration, 
+  IConfigurationMap, 
   ApiKeyStrategy, 
   BasicStrategy, 
   BasicAndBearerTokenStrategy, 

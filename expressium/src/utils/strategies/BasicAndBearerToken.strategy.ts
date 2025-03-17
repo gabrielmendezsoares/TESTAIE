@@ -187,19 +187,19 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 
    * @public
    * 
-   * @param configuration - The request configuration to modify.
+   * @param configurationMap - The request configuration to modify.
    * 
    * @returns The modified request configuration with the bearer token added.
    */
-  public async authenticate(configuration: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
+  public async authenticate(configurationMap: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
     if (!this.isTokenValid()) {
       await this.obtainToken();
     }
 
     return {
-      ...configuration,
+      ...configurationMap,
       headers: {
-        ...configuration.headers,
+        ...configurationMap.headers,
         Authorization: `Bearer ${this.bearerToken}`
       }
     };

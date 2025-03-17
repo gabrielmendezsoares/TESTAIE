@@ -50,15 +50,15 @@ export class ApiKeyStrategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * @public
    * 
-   * @param configuration - The request configuration to modify.
+   * @param configurationMap - The request configuration to modify.
    * 
    * @returns The modified request configuration with the API key added.
    */
-  public authenticate(configuration: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
+  public authenticate(configurationMap: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
     return {
-      ...configuration,
+      ...configurationMap,
       headers: {
-        ...configuration.headers,
+        ...configurationMap.headers,
         [this.headerName]: this.apiKey
       }
     };

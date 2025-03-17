@@ -15,6 +15,7 @@ const { JWT_SECRET } = process.env;
  * to the request object for downstream middleware and route handlers.
  * 
  * The function handles:
+ * 
  * - JWT token presence verification
  * - Request body validation for required fields
  * - Token signature verification using the decrypted secret

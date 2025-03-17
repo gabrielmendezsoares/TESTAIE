@@ -23,6 +23,7 @@ const prisma = new PrismaClient();
  * stored user data and generates a JWT token for subsequent authorized requests.
  * 
  * The function handles:
+ * 
  * - Basic Auth header validation
  * - Request body validation for required fields
  * - User existence and status verification
@@ -185,6 +186,11 @@ export const getAuthentication = async (
     return {
       status: 200,
       data: {
+        status: true,
+        statusCode: 200,
+        timestamp,
+        path: req.originalUrl || req.url,
+        method: req.method,
         username,
         roleList: user.role_list,
         token: JWT.sign(

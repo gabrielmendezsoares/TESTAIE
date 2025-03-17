@@ -1,1 +1,1 @@
-export * as IHttpClientConfiguration from './IHttpClientConfiguration';
+export * as IConfigurationMap from './IConfigurationMap';
