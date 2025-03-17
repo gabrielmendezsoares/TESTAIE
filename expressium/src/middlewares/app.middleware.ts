@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import JWT from 'jsonwebtoken';
 import { IResponse, IResponseData } from '../interfaces';
+import { dateTimeFormatterUtil } from '../utils';
 
 const { JWT_SECRET } = process.env;
 
@@ -25,7 +26,6 @@ const { JWT_SECRET } = process.env;
  * @param req - Express Request object containing auth header and body.
  * @param _res - Express Response object (unused but passed to next middleware).
  * @param next - Express NextFunction for continuing the middleware chain.
- * @param timestamp - Current timestamp string for logging and response generation.
  * 
  * @returns Promise resolving to void (continues middleware chain) or error response.
  */
@@ -33,7 +33,6 @@ export const getAuthorization = async (
   req: Request,
   _res: Response,
   next: NextFunction,
-  timestamp: string
 ): Promise<IResponse.IResponse<IResponseData.IResponseData> | void> => {
   if (!JWT_SECRET) {
     return { 
@@ -41,7 +40,7 @@ export const getAuthorization = async (
       data: {
         status: false,
         statusCode: 500,
-        timestamp,
+        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
         path: req.originalUrl || req.url,
         method: req.method,
         message: 'API configuration not found.',
@@ -58,7 +57,7 @@ export const getAuthorization = async (
       data: { 
         status: false,
         statusCode: 401,
-        timestamp,
+        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
         path: req.originalUrl || req.url,
         method: req.method,
         message: 'Authentication token is missing.',
@@ -81,7 +80,7 @@ export const getAuthorization = async (
           data: {
             status: false,
             statusCode: 401,
-            timestamp,
+            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
             path: req.originalUrl || req.url,
             method: req.method,
             message: 'Your session has expired.',
@@ -97,14 +96,14 @@ export const getAuthorization = async (
       return;
     } catch(error: unknown) {
       if (error instanceof JWT.JsonWebTokenError) {
-        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
           data: {
             status: false,
             statusCode: 401,
-            timestamp,
+            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
             path: req.originalUrl || req.url,
             method: req.method,
             message: 'Invalid authentication token.',
@@ -112,14 +111,14 @@ export const getAuthorization = async (
           }
         };
       } else if (error instanceof JWT.NotBeforeError) {
-        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
           data: {
             status: false,
             statusCode: 401,
-            timestamp,
+            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
             path: req.originalUrl || req.url,
             method: req.method,
             message: 'Token not yet active.',
@@ -127,14 +126,14 @@ export const getAuthorization = async (
           }
         };
       } else if (error instanceof JWT.TokenExpiredError) {
-        console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+        console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
         return {
           status: 401,
           data: {
             status: false,
             statusCode: 401,
-            timestamp,
+            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
             path: req.originalUrl || req.url,
             method: req.method,
             message: 'Your authentication token has expired.',
@@ -146,14 +145,14 @@ export const getAuthorization = async (
       throw error;
     }
   } catch (error: unknown) {
-    console.log(`Middleware | Timestamp: ${ timestamp } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
+    console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
     return {
       status: 500,
       data: {
         status: false,
         statusCode: 500,
-        timestamp,
+        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
         path: req.originalUrl || req.url,
         method: req.method,
         message: 'Authorization process encountered a technical issue.',

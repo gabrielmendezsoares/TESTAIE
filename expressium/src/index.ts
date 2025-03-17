@@ -186,7 +186,7 @@ const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof Ser
  * 
  * @returns A promise that resolves when the server starts successfully.
  */
-const startServer = async (serverInstance: Server): Promise<void> => {
+const startServer = async (serverInstance: Server<typeof IncomingMessage, typeof ServerResponse>): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> => {
   try {
     const server = serverInstance.listen(
       PORT, 
@@ -210,6 +210,8 @@ const startServer = async (serverInstance: Server): Promise<void> => {
         process.exit(1);
       }
     );
+
+    return server;
   } catch (error: unknown) {
     console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
     process.exit(1);
