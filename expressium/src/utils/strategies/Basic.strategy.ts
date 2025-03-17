@@ -50,13 +50,13 @@ export class BasicStrategy implements IAuthenticationStrategy.IAuthenticationStr
    * 
    * @public
    * 
-   * @param configuration - The request configuration to modify.
+   * @param configurationMap - The request configuration to modify.
    * 
    * @returns The modified request configuration with the basic credentials added.
    */
-  public authenticate(configuration: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
+  public authenticate(configurationMap: AxiosRequestConfig<any>): AxiosRequestConfig<any> {
     return {
-      ...configuration,
+      ...configurationMap,
       auth: {
         username: this.username,
         password: this.password

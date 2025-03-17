@@ -1,22 +1,23 @@
+import express from 'express';
+
 import 
-    app, 
+    startServer, 
     { 
       ApiError,
       BaseError,
       generateRoute,
-      IRoute, 
+      IRouteMap, 
       cryptographyUtil, 
       dateTimeFormatterUtil, 
       HttpClientUtil,
-      IHttpClientConfiguration, 
+      IConfigurationMap, 
       ApiKeyStrategy, 
       BasicStrategy, 
       BasicAndBearerTokenStrategy, 
       BearerTokenStrategy, 
       OAuth2Strategy,
       IAuthenticationStrategy,
-      createServer,
-      startServer
+      createServer
     } 
 from '../expressium/src';
 
@@ -26,8 +27,9 @@ import { appRoute } from './routes';
   async (): Promise<void> => {
     appRoute.generateRoutes();
 
-    const resolvedAppModule = await createServer();
+    const app = express();
+    const serverInstance = await createServer(app);
     
-    startServer(resolvedAppModule);
+    startServer(serverInstance);
   }
 )();

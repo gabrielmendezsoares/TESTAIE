@@ -29,6 +29,11 @@ export interface IResponseData {
  * authentication response data objects for consistent formatting across different services.
  */
 export interface IAuthenticationResponseData {
+  status: boolean;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+  method: string;
   username: string;
   roleList: JsonValue;
   token: string;

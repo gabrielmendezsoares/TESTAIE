@@ -1,7 +1,7 @@
 import { AxiosRequestConfig } from 'axios/index';
 
 /**
- * ## IHttpClientConfiguration
+ * ## IConfigurationMap
  * 
  * Configuration settings for an HTTP client.
  * 
@@ -13,7 +13,7 @@ import { AxiosRequestConfig } from 'axios/index';
  * provided by the Axios library, which allows the client to pass additional
  * configuration settings to the Axios library when making requests.
  */
-export interface IHttpClientConfiguration extends AxiosRequestConfig<any> {
+export interface IConfigurationMap extends AxiosRequestConfig<any> {
   /**
    * ## retry
    * 

@@ -141,13 +141,13 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * @async
    * 
-   * @param configuration - The request configuration to modify.
+   * @param configurationMap - The request configuration to modify.
    * 
    * @returns The modified request configuration with the OAuth2 token added.
    * 
    * @throws If no valid access token is available.
    */
-  public async authenticate(configuration: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
+  public async authenticate(configurationMap: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
     if (this.shouldRefresh()) {
       await this.refresh();
     }
@@ -157,9 +157,9 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
     }
 
     return {
-      ...configuration,
+      ...configurationMap,
       headers: {
-        ...configuration.headers,
+        ...configurationMap.headers,
         Authorization: `Bearer ${ this.accessToken }`
       }
     };

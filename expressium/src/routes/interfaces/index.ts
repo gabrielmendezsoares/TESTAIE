@@ -1,1 +1,1 @@
-export * as IRoute from './IRoute';
+export * as IRouteMap from './IRouteMap';

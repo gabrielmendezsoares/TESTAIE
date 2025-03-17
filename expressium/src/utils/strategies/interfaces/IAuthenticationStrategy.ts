@@ -23,11 +23,11 @@ export interface IAuthenticationStrategy {
    * with the modified request configuration, including any authentication credentials
    * that are required to access the requested resource.
    * 
-   * @param configuration - Request configuration to modify with authentication credentials.
+   * @param configurationMap - Request configuration to modify with authentication credentials.
    * 
    * @returns Promise that resolves with the modified request configuration.
    */
-  authenticate(configuration: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> | AxiosRequestConfig<any>;
+  authenticate(configurationMap: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> | AxiosRequestConfig<any>;
   
   /**
    * ## refresh
