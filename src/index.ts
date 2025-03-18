@@ -25,11 +25,16 @@ import { appRoute } from './routes';
 
 (
   async (): Promise<void> => {
-    appRoute.generateRoutes();
+    try {
+      appRoute.generateRoutes();
 
-    const app = express();
-    const serverInstance = await createServer(app);
-    
-    startServer(serverInstance);
+      const app = express();
+      const serverInstance = await createServer(app);
+      
+      startServer(serverInstance);
+    } catch (error: unknown) {
+      console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
+      process.exit(1);
+    }
   }
 )();

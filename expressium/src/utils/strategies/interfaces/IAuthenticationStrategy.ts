@@ -32,11 +32,23 @@ export interface IAuthenticationStrategy {
   /**
    * ## refresh
    * 
-   * Refreshes the authentication credentials if supported.
+   * Standard interface for authentication strategies in the application.
    * 
-   * @description This method is optional and should be implemented if the authentication
-   * strategy supports refreshing authentication credentials. It should return a promise
-   * that resolves when the refresh is complete, or reject with an error if the refresh fails.
+   * @description Defines the contract that all authentication strategies must follow when
+   * implementing custom authentication logic. This interface specifies methods that
+   * must be implemented to authenticate HTTP requests and optionally refresh authentication credentials.
+   * 
+   * Authentication strategies can include various mechanisms such as:
+   * 
+   * - Bearer token authentication
+   * - Basic authentication
+   * - OAuth2 flows
+   * - API key authentication
+   * - JWT authentication
+   * - Custom authentication schemes
+   * 
+   * Implementations of this interface should handle token storage, retrieval, and application
+   * to outgoing requests as appropriate for the specific authentication mechanism.
    * 
    * @returns Promise that resolves when the refresh is complete.
    */
