@@ -8,7 +8,7 @@ export const generateRoutes = (): void => {
       version: 'v1',
       endpoint: `${ path.basename(process.cwd()) }/main/get/template`,
       method: 'get',
-      service: appService.getTemplate,
+      serviceHandler: appService.getTemplate,
       requiresAuthorization: false
     }
   );

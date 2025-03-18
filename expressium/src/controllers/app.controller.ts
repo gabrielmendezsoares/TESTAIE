@@ -47,7 +47,7 @@ import { dateTimeFormatterUtil } from '../utils';
  * - Errors: Logs detailed error information including service name, timestamp, and error message
  * - Format: Uses consistent log format for easy parsing and monitoring
  * 
- * @param service - The service function to be wrapped by this controller.
+ * @param serviceHandler - The service function to be wrapped by this controller.
  * Must be an async function that accepts (req, res, next, timestamp) parameters
  * and returns an object with `status` (HTTP status code) and `data` (response payload) properties.
  *
@@ -59,19 +59,19 @@ import { dateTimeFormatterUtil } from '../utils';
  * and transforms them into appropriate HTTP responses with status code 500.
  * All errors from the service function will be caught, logged, and handled uniformly.
  */
-export const generateController = (service: Function): RequestHandler => {
+export const generateController = (serviceHandler: Function): RequestHandler => {
   return async (
     req: Request, 
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     const timestamp = dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date());
-    const timer = `Controller | Timestamp: ${ timestamp } | Service Name: ${ service.name }`;
+    const timer = `Controller | Timestamp: ${ timestamp } | Service Name: ${ serviceHandler.name }`;
     
     console.time(timer);
     
     try {
-      const { status, data } = await service(req, res, next, timestamp);
+      const { status, data } = await serviceHandler(req, res, next, timestamp);
       
       res.status(status).json({ data });
     } catch (error: unknown) {
