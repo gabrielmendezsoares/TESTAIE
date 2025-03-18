@@ -232,18 +232,20 @@ export const getAuthentication = async (
         timestamp,
         path: req.originalUrl || req.url,
         method: req.method,
-        username,
-        roleList: user.role_list,
-        token: JWT.sign(
-          {
-            username,
-            roleList: user.role_list,
-            expiresIn
-          },
-          process.env.JWT_SECRET as Secret,
-          { expiresIn: process.env.JWT_EXPIRES_IN as StringValue }
-        ),
-        expiresIn
+        data: {
+          username,
+          roleList: user.role_list,
+          token: JWT.sign(
+            {
+              username,
+              roleList: user.role_list,
+              expiresIn
+            },
+            process.env.JWT_SECRET as Secret,
+            { expiresIn: process.env.JWT_EXPIRES_IN as StringValue }
+          ),
+          expiresIn
+        }
       }
     };
   } catch (error: unknown) {
