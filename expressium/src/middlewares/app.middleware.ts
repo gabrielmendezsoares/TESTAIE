@@ -98,7 +98,12 @@ export const getAuthorization = async (
 
   try {
     try {
-      const decodedToken = JWT.verify(reqHeadersAuthorization, process.env.JWT_SECRET) as IDecodedToken.IDecodedToken;
+      const decodedToken = JWT.verify(
+        reqHeadersAuthorization.startsWith('Bearer ') 
+          ? reqHeadersAuthorization.split(' ')[1] 
+          : reqHeadersAuthorization, 
+        process.env.JWT_SECRET
+      ) as IDecodedToken.IDecodedToken;
 
       roleList?.forEach(
         (role: string) => {
