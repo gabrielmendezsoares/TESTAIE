@@ -1,5 +1,6 @@
+import { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { generateRoute, dateTimeFormatterUtil } from '../../expressium/src';
+import { generateRoute, router, dateTimeFormatterUtil } from '../../expressium/src';
 import { appService } from "../services";
 
 export const generateRoutes = (): void => {
@@ -11,6 +12,28 @@ export const generateRoutes = (): void => {
         method: 'get',
         serviceHandler: appService.getTemplate,
         requiresAuthorization: false
+      }
+    );
+
+    router.use(
+      (
+        req: Request, 
+        res: Response, 
+        _next: NextFunction
+      ) => {
+        res
+          .status(404)
+          .json(
+            {
+              status: false,
+              statusCode: 404,
+              timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+              path: req.originalUrl || req.url,
+              method: req.method,
+              message: 'Route not found.',
+              suggestion: 'Please check the URL and HTTP method to ensure they are correct.'
+            }
+          );
       }
     );
   } catch (error: unknown) {

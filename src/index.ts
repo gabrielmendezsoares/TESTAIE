@@ -6,6 +6,7 @@ import
       ApiError,
       BaseError,
       generateRoute,
+      router,
       IRouteMap, 
       cryptographyUtil, 
       dateTimeFormatterUtil, 
@@ -31,7 +32,7 @@ import { appRoute } from './routes';
       const app = express();
       const serverInstance = await createServer(app);
       
-      startServer(serverInstance);
+      await startServer(serverInstance);
     } catch (error: unknown) {
       console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
       process.exit(1);

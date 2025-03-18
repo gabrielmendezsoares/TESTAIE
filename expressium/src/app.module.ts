@@ -1,6 +1,6 @@
 import cors from 'cors';
 import 'dotenv/config';
-import express, { Application, Express, Request, Response } from 'express';
+import express, { Application, Express, Request, Response, NextFunction } from 'express';
 import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
 import fs from 'fs/promises';
 import helmet from 'helmet';
@@ -119,9 +119,6 @@ const getRateLimiter = (): RateLimitRequestHandler => {
  * 
  * - All API routes mounted under the '/api' path prefix
  * 
- * The function doesn't set up error handling or 404 handling, which should be done separately
- * after calling this function.
- * 
  * @async
  * 
  * @param app - The Express application instance to configure.
@@ -141,6 +138,28 @@ const configureApp = async (app: Express): Promise<Application> => {
   app.use(morgan('dev'));
   app.use(morgan('combined', { stream: accessLog.createWriteStream() }));
   app.use('/api', appRoute.router);
+
+  app.use(
+    (
+      req: Request, 
+      res: Response, 
+      _next: NextFunction
+    ): void => {
+      res
+        .status(404)
+        .json(
+          {
+            status: false,
+            statusCode: 404,
+            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+            path: req.originalUrl || req.url,
+            method: req.method,
+            message: 'Route not found.',
+            suggestion: 'Please check the URL and HTTP method to ensure they are correct.'
+          }
+        );
+    }
+  );
   
   return app;
 };

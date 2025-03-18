@@ -311,6 +311,19 @@ export default startServer;
  */
 export const generateRoute = appRoute.generateRoute;
 
+/**
+ * ## router
+ * 
+ * The main Express router instance for the application.
+ * 
+ * @description This router is used to define and register all API routes in the application.
+ * It provides a centralized location for route definitions and ensures consistent URL patterns.
+ * 
+ * The router is exported and used by the main Express application to handle incoming requests.
+ * It is mounted at the root level of the application and serves as the entry point for all API requests.
+ */
+export const router = appRoute.router;
+
 export { 
   ApiError,
   BaseError,
