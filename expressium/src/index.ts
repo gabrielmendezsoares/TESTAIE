@@ -188,7 +188,7 @@ const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof Ser
  */
 const startServer = async (serverInstance: Server<typeof IncomingMessage, typeof ServerResponse>): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> => {
   try {
-    const server = serverInstance.listen(
+    const RunningServerInstance = serverInstance.listen(
       PORT, 
       (): void => {
         console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: Server started`);
@@ -196,9 +196,9 @@ const startServer = async (serverInstance: Server<typeof IncomingMessage, typeof
       }
     );
     
-    setupGracefulShutdown(server);
+    setupGracefulShutdown(RunningServerInstance);
     
-    server.on(
+    RunningServerInstance.on(
       'error', 
       (error: NodeJS.ErrnoException): void => {
         if (error.code === 'EADDRINUSE') {
@@ -211,7 +211,7 @@ const startServer = async (serverInstance: Server<typeof IncomingMessage, typeof
       }
     );
 
-    return server;
+    return RunningServerInstance;
   } catch (error: unknown) {
     console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
     process.exit(1);
