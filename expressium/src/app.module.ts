@@ -111,8 +111,9 @@ const getRateLimiter = (): RateLimitRequestHandler => {
  * 
  * - JSON body parsing for API requests
  * - Request logging in two formats:
- *   1. Development-friendly console output ('dev' format)
- *   2. Detailed logs to access.log file ('combined' format)
+ * 
+ * 1. Development-friendly console output ('dev' format)
+ * 2. Detailed logs to access.log file ('combined' format)
  * 
  * Routing:
  * 

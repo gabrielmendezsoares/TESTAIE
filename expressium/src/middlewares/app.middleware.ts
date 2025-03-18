@@ -46,7 +46,7 @@ import { dateTimeFormatterUtil } from '../utils';
  * a user-friendly message, and suggestions for resolution.
  * 
  * @param req - Express Request object containing auth header and body.
- * @param _res - Express Response object (unused but passed to next middleware).
+ * @param res - Express Response object.
  * @param next - Express NextFunction for continuing the middleware chain.
  * @param roleList - Optional array of user roles to check against the token's roleList. 
  * 
@@ -54,40 +54,46 @@ import { dateTimeFormatterUtil } from '../utils';
  */
 export const getAuthorization = async (
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction,
   roleList?: string[]
 ): Promise<IResponse.IResponse<IResponseData.IResponseData> | void> => {
   if (!process.env.JWT_SECRET) {
-    return { 
-      status: 500, 
-      data: {
-        status: false,
-        statusCode: 500,
-        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-        path: req.originalUrl || req.url,
-        method: req.method,
-        message: 'API configuration not found.',
-        suggestion: 'The requested API type is not properly configured in the system.' 
-      }
-    };
+    res
+      .status(500)
+      .json(
+        {
+          status: false,
+          statusCode: 500,
+          timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+          path: req.originalUrl || req.url,
+          method: req.method,
+          message: 'API configuration not found.',
+          suggestion: 'The requested API type is not properly configured in the system.' 
+        }
+      );
+    
+    return;
   }
 
   const reqHeadersAuthorization = req.headers.authorization;
 
   if (!reqHeadersAuthorization) {
-    return { 
-      status: 401, 
-      data: { 
-        status: false,
-        statusCode: 401,
-        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-        path: req.originalUrl || req.url,
-        method: req.method,
-        message: 'Authentication token is missing.',
-        suggestion: 'Include a token in the Authorization header.'
-      }
-    };
+    res
+      .status(401)
+      .json(
+        {
+          status: false,
+          statusCode: 401,
+          timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+          path: req.originalUrl || req.url,
+          method: req.method,
+          message: 'Authentication token is missing.',
+          suggestion: 'Include a token in the Authorization header.'
+        }
+      );
+
+    return;
   }
 
   try {
@@ -97,35 +103,41 @@ export const getAuthorization = async (
       roleList?.forEach(
         (role: string) => {
           if (!decodedToken.roleList.includes(role)) {
-            return {
-              status: 401,
-              data: {
-                status: false,
-                statusCode: 401,
-                timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-                path: req.originalUrl || req.url,
-                method: req.method,
-                message: 'Insufficient permissions.',
-                suggestion: 'Contact your administrator for access to this resource.'
-              }
-            };
+            res
+              .status(401)
+              .json(
+                {
+                  status: false,
+                  statusCode: 401,
+                  timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+                  path: req.originalUrl || req.url,
+                  method: req.method,
+                  message: 'Insufficient permissions.',
+                  suggestion: 'Contact your administrator for access to this resource.'
+                }
+              );
+            
+            return;
           }
         }
       );
 
       if ('expiresIn' in decodedToken && Date.now() > decodedToken.expiresIn) {
-        return {
-          status: 401, 
-          data: {
-            status: false,
-            statusCode: 401,
-            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-            path: req.originalUrl || req.url,
-            method: req.method,
-            message: 'Your session has expired.',
-            suggestion: 'Please log in again to obtain a new token.' 
-          }
-        };
+        res
+          .status(401)
+          .json(
+            {
+              status: false,
+              statusCode: 401,
+              timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+              path: req.originalUrl || req.url,
+              method: req.method,
+              message: 'Your session has expired.',
+              suggestion: 'Please log in again to obtain a new token.' 
+            }
+          );
+
+        return;
       }
 
       (req as any).user = decodedToken;
@@ -137,48 +149,57 @@ export const getAuthorization = async (
       if (error instanceof JWT.JsonWebTokenError) {
         console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
-        return {
-          status: 401,
-          data: {
-            status: false,
-            statusCode: 401,
-            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-            path: req.originalUrl || req.url,
-            method: req.method,
-            message: 'Invalid authentication token.',
-            suggestion: 'Please ensure you are using a valid, unmodified token.' 
-          }
-        };
+        res
+          .status(401)
+          .json(
+            {
+              status: false,
+              statusCode: 401,
+              timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+              path: req.originalUrl || req.url,
+              method: req.method,
+              message: 'Invalid authentication token.',
+              suggestion: 'Please ensure you are using a valid, unmodified token.' 
+            }
+          );
+
+        return;
       } else if (error instanceof JWT.NotBeforeError) {
         console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
-        return {
-          status: 401,
-          data: {
-            status: false,
-            statusCode: 401,
-            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-            path: req.originalUrl || req.url,
-            method: req.method,
-            message: 'Token not yet active.',
-            suggestion: 'This token cannot be used until its activation time.' 
-          }
-        };
+        res
+          .status(401)
+          .json(
+            {
+              status: false,
+              statusCode: 401,
+              timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+              path: req.originalUrl || req.url,
+              method: req.method,
+              message: 'Token not yet active.',
+              suggestion: 'This token cannot be used until its activation time.' 
+            }
+          );
+
+        return;
       } else if (error instanceof JWT.TokenExpiredError) {
         console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
-        return {
-          status: 401,
-          data: {
-            status: false,
-            statusCode: 401,
-            timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-            path: req.originalUrl || req.url,
-            method: req.method,
-            message: 'Your authentication token has expired.',
-            suggestion: 'Please log in again to continue using the API.' 
-          }
-        };
+        res
+          .status(401)
+          .json(
+            {
+              status: false,
+              statusCode: 401,
+              timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+              path: req.originalUrl || req.url,
+              method: req.method,
+              message: 'Your authentication token has expired.',
+              suggestion: 'Please log in again to continue using the API.' 
+            }
+          );
+
+        return;
       }
       
       throw error;
@@ -186,17 +207,20 @@ export const getAuthorization = async (
   } catch (error: unknown) {
     console.log(`Middleware | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Name: getAuthorization | Error: ${ error instanceof Error ? error.message : String(error) }`);
 
-    return {
-      status: 500,
-      data: {
-        status: false,
-        statusCode: 500,
-        timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-        path: req.originalUrl || req.url,
-        method: req.method,
-        message: 'Authorization process encountered a technical issue.',
-        suggestion: 'Our team has been notified. Please try again in a few minutes.' 
-      }
-    };
+    res
+      .status(500)
+      .json(
+        {
+          status: false,
+          statusCode: 500,
+          timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
+          path: req.originalUrl || req.url,
+          method: req.method,
+          message: 'Authorization process encountered a technical issue.',
+          suggestion: 'Our team has been notified. Please try again in a few minutes.' 
+        }
+      );
+
+    return;
   }
 };

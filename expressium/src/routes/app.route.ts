@@ -96,7 +96,7 @@ export const generateRoute = (
   }: IRouteMap.IRouteMap
 ): void => {
   if (!versionRegex.test(version)) {
-    console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: Invalid API version: ${ version }`);
+    console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: Invalid API version - ${ version }`);
 
     return;
   }
