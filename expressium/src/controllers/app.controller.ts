@@ -34,8 +34,7 @@ import { dateTimeFormatterUtil } from '../utils';
  * 
  * 1. Successful execution: Returns service data with the specified status code
  * 2. Handled errors: Processes errors with custom status codes from the service
- * 3. Unhandled errors: Catches unexpected exceptions and returns a generic 500 error
- *    with a standardized error message and suggestion for the client
+ * 3. Unhandled errors: Catches unexpected exceptions and returns a generic 500 error.
  * 
  * ### Response format:
  * 

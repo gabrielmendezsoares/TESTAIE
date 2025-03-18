@@ -16,6 +16,7 @@
  * - Debugging support (stack trace)
  * 
  * By standardizing error structures, this interface enables:
+ * 
  * - Consistent error handling middleware
  * - Automated error logging with proper context
  * - Uniform client-facing error responses
