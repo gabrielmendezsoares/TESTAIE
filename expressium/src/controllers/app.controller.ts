@@ -73,7 +73,7 @@ export const generateController = (serviceHandler: Function): RequestHandler => 
     try {
       const { status, data } = await serviceHandler(req, res, next, timestamp);
       
-      res.status(status).json({ data });
+      res.status(status).json({ ...data });
     } catch (error: unknown) {
       console.log(`Controller | Timestamp: ${ timestamp } | Error: ${ error instanceof Error ? error.message : String(error) }`);
       

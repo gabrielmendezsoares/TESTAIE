@@ -52,8 +52,10 @@ export interface IAuthenticationResponseData {
   timestamp: string;
   path: string;
   method: string;
-  username: string;
-  roleList: JsonValue;
-  token: string;
-  expiresIn: number;
+  data: {
+    username: string;
+    roleList: JsonValue;
+    token: string;
+    expiresIn: number;
+  };
 }
