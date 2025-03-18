@@ -6,6 +6,7 @@ import
       ApiError,
       BaseError,
       generateRoute,
+      router,
       IRouteMap, 
       cryptographyUtil, 
       dateTimeFormatterUtil, 
@@ -25,11 +26,16 @@ import { appRoute } from './routes';
 
 (
   async (): Promise<void> => {
-    appRoute.generateRoutes();
+    try {
+      appRoute.generateRoutes();
 
-    const app = express();
-    const serverInstance = await createServer(app);
-    
-    startServer(serverInstance);
+      const app = express();
+      const serverInstance = await createServer(app);
+      
+      await startServer(serverInstance);
+    } catch (error: unknown) {
+      console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Error: ${ error instanceof Error ? error.message : String(error) }`);
+      process.exit(1);
+    }
   }
 )();

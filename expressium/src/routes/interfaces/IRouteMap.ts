@@ -14,7 +14,8 @@ export interface IRouteMap {
   method: string,
   version: string,
   endpoint: string,
-  middlewareList?: Function[],
-  service: Function,
+  serviceHandler: Function,
   requiresAuthorization?: boolean
+  roleList?: string[],
+  middlewareHandlerList?: Function[],
 };

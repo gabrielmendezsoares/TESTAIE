@@ -6,17 +6,12 @@ import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { IResponse, IResponseData } from '../interfaces';
 
-const { 
-  JWT_SECRET,
-  JWT_EXPIRES_IN
-} = process.env;
-
 const prisma = new PrismaClient();
 
 /**
  * ## getAuthentication
  * 
- * Authenticates a user using Basic Authentication credentials
+ * Authenticates a user using Basic Authentication credentials and generates a JWT token.
  * 
  * @description This function performs the initial authentication process using Basic Authentication
  * credentials provided in the request header. It validates the credentials against
@@ -24,18 +19,64 @@ const prisma = new PrismaClient();
  * 
  * The function handles:
  * 
- * - Basic Auth header validation
- * - Request body validation for required fields
- * - User existence and status verification
- * - Password verification using bcrypt
- * - JWT token generation with appropriate expiration
+ * - Environment variables validation (JWT_SECRET, JWT_EXPIRES_IN)
+ * - Basic Auth header presence and format validation
+ * - Username and password extraction and decoding
+ * - User existence and active status verification in the database
+ * - Password verification using bcrypt's secure comparison
+ * - JWT token generation with dynamic expiration time calculation
+ * - Standardized response formatting with detailed status messages
  * 
- * @param req - Express Request object containing auth headers and body.
+ * ### Authentication Flow:
+ * 
+ * 1. Validate environment variables (JWT_SECRET, JWT_EXPIRES_IN)
+ * 2. Check presence and format of Authorization header
+ * 3. Extract and decode Basic Auth credentials
+ * 4. Retrieve user data from database based on username and application type
+ * 5. Verify user exists and is active
+ * 6. Compare provided password with stored hash using bcrypt
+ * 7. Calculate token expiration time based on JWT_EXPIRES_IN format
+ * 8. Generate JWT token with user data and expiration
+ * 9. Return success response with token or appropriate error response
+ * 
+ * ### Error Scenarios:
+ * 
+ * - Missing JWT_SECRET or JWT_EXPIRES_IN: 500 Internal Server Error
+ * - Missing Authorization header: 400 Bad Request
+ * - Invalid Basic Auth format: 400 Bad Request
+ * - User not found: 401 Unauthorized
+ * - Inactive user account: 403 Forbidden
+ * - Password mismatch: 401 Unauthorized
+ * - Database or other technical errors: 500 Internal Server Error
+ * 
+ * ### Token Expiration Format:
+ * 
+ * The function supports various time units for JWT_EXPIRES_IN:
+ * 
+ * - 's': seconds (e.g., '60s')
+ * - 'm': minutes (e.g., '30m')
+ * - 'h': hours (e.g., '24h')
+ * - 'd': days (e.g., '7d')
+ * - Default: 1 hour if format is unrecognized
+ * 
+ * ### Response Structure:
+ * 
+ * Success response includes:
+ * 
+ * - Generated JWT token
+ * - User's username and role list
+ * - Token expiration timestamp
+ * - Request metadata (path, method, timestamp)
+ * 
+* @param req - Express Request object containing auth headers and body.
  * @param _res - Express Response object (unused but required for middleware signature).
  * @param _next - Express NextFunction (unused but required for middleware signature).
  * @param timestamp - Current timestamp string for logging and response generation.
  * 
- * @returns Promise resolving to either a success response with token or an error response.
+ * @returns Promise resolving to IResponse containing either:
+ * 
+ * - Success (200): JWT token and user data
+ * - Error (400/401/403/500): Appropriate error message and suggestion
  */
 export const getAuthentication = async (
   req: Request,
@@ -43,7 +84,7 @@ export const getAuthentication = async (
   _next: NextFunction,
   timestamp: string
 ): Promise<IResponse.IResponse<IResponseData.IResponseData | IResponseData.IAuthenticationResponseData>> => {
-  if (!JWT_SECRET) {
+  if (!process.env.JWT_SECRET) {
     return { 
       status: 500, 
       data: {
@@ -58,7 +99,7 @@ export const getAuthentication = async (
     };
   }
 
-  if (!JWT_EXPIRES_IN) {
+  if (!process.env.JWT_EXPIRES_IN) {
     return { 
       status: 500, 
       data: {
@@ -173,9 +214,9 @@ export const getAuthentication = async (
     }
 
     let expiresIn: number;
-    const jwtExpiresInInt = parseInt(JWT_EXPIRES_IN.slice(0, -1), 10);
+    const jwtExpiresInInt = parseInt(process.env.JWT_EXPIRES_IN.slice(0, -1), 10);
     
-    switch (JWT_EXPIRES_IN.slice(-1)) {
+    switch (process.env.JWT_EXPIRES_IN.slice(-1)) {
       case 's': expiresIn = Date.now() + (jwtExpiresInInt * 1000); break;
       case 'm': expiresIn = Date.now() + (jwtExpiresInInt * 60 * 1000); break;
       case 'h': expiresIn = Date.now() + (jwtExpiresInInt * 60 * 60 * 1000); break;
@@ -199,8 +240,8 @@ export const getAuthentication = async (
             roleList: user.role_list,
             expiresIn
           },
-          JWT_SECRET as Secret,
-          { expiresIn: JWT_EXPIRES_IN as StringValue }
+          process.env.JWT_SECRET as Secret,
+          { expiresIn: process.env.JWT_EXPIRES_IN as StringValue }
         ),
         expiresIn
       }

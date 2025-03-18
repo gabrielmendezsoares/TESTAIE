@@ -244,15 +244,15 @@ export class HttpClient {
    * 
    * 1. Request Interceptor:
    * 
-   *    - Adds a unique request ID header (X-Request-ID) to each request for traceability
-   *    - Applies the current authentication strategy to the request configuration
-   *    - Handles any errors that occur during the request preparation phase
+   * - Adds a unique request ID header (X-Request-ID) to each request for traceability
+   * - Applies the current authentication strategy to the request configuration
+   * - Handles any errors that occur during the request preparation phase
    * 
    * 2. Response Interceptor:
    * 
-   *    - Implements automatic retry logic for failed requests based on status codes
-   *    - Uses exponential backoff to progressively increase delay between retries
-   *    - Limits retry attempts based on the configured maximum
+   * - Implements automatic retry logic for failed requests based on status codes
+   * - Uses exponential backoff to progressively increase delay between retries
+   * - Limits retry attempts based on the configured maximum
    * 
    * The retry logic specifically targets transient errors (like timeouts and server errors)
    * that may resolve themselves after a brief delay, improving the robustness of the client.
@@ -410,11 +410,11 @@ export class HttpClient {
    * 
    * @param configurationMap - Additional request configuration options. Can include:
    * 
-   *  - params: URL query parameters as an object
-   *  - headers: Custom headers for this specific request
-   *  - timeout: Custom timeout for this request (overrides default)
-   *  - responseType: Expected response type (json, text, blob, etc.)
-   *  - Any other valid Axios request configuration options
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
    * 
    * @returns Promise resolving to an AxiosResponse object with data of type T. The response
    * includes the complete response object with:
@@ -472,19 +472,19 @@ export class HttpClient {
    * 
    * @param data - Request payload to send in the request body. Can be:
    * 
-   *  - An object (automatically serialized to JSON by default)
-   *  - A FormData instance for multipart/form-data requests
-   *  - A URLSearchParams instance for application/x-www-form-urlencoded requests
-   *  - A string or ArrayBuffer for raw data
-   *  - undefined if no data needs to be sent
+   * - An object (automatically serialized to JSON by default)
+   * - A FormData instance for multipart/form-data requests
+   * - A URLSearchParams instance for application/x-www-form-urlencoded requests
+   * - A string or ArrayBuffer for raw data
+   * - undefined if no data needs to be sent
    * 
    * @param configurationMap - Additional request configuration options. Can include:
    * 
-   *  - params: URL query parameters as an object
-   *  - headers: Custom headers for this specific request
-   *  - timeout: Custom timeout for this request (overrides default)
-   *  - responseType: Expected response type (json, text, blob, etc.)
-   *  - Any other valid Axios request configuration options
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
    * 
    * @returns Promise resolving to an AxiosResponse object with data of type T. The response
    * includes the complete response object with:
@@ -545,19 +545,19 @@ export class HttpClient {
    * 
    * @param data - Request payload to send in the request body. Can be:
    * 
-   *  - An object (automatically serialized to JSON by default)
-   *  - A FormData instance for multipart/form-data requests
-   *  - A URLSearchParams instance for application/x-www-form-urlencoded requests
-   *  - A string or ArrayBuffer for raw data
-   *  - undefined if no data needs to be sent
+   * - An object (automatically serialized to JSON by default)
+   * - A FormData instance for multipart/form-data requests
+   * - A URLSearchParams instance for application/x-www-form-urlencoded requests
+   * - A string or ArrayBuffer for raw data
+   * - undefined if no data needs to be sent
    * 
    * @param configurationMap - Additional request configuration options. Can include:
    * 
-   *  - params: URL query parameters as an object
-   *  - headers: Custom headers for this specific request
-   *  - timeout: Custom timeout for this request (overrides default)
-   *  - responseType: Expected response type (json, text, blob, etc.)
-   *  - Any other valid Axios request configuration options
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
    * 
    * @returns Promise resolving to an AxiosResponse object with data of type T. The response
    * includes the complete response object with:
@@ -692,11 +692,11 @@ export class HttpClient {
    * 
    * @param configurationMap - Additional request configuration options. Can include:
    * 
-   *  - params: URL query parameters as an object
-   *  - headers: Custom headers for this specific request
-   *  - timeout: Custom timeout for this request (overrides default)
-   *  - responseType: Expected response type (json, text, blob, etc.)
-   *  - Any other valid Axios request configuration options
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
    * 
    * @returns Promise resolving to an AxiosResponse object with data of type T. The response
    * includes the complete response object with:
