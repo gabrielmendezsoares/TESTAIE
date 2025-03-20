@@ -4,7 +4,7 @@ import { appRoute } from './routes';
 import { IRouteMap } from './routes/interfaces';
 import { cryptographyUtil, dateTimeFormatterUtil, HttpClientUtil } from './utils';
 import { IConfigurationMap } from './utils/interfaces';
-import { ApiKeyStrategy, BasicStrategy, BasicAndBearerTokenStrategy, BearerTokenStrategy, OAuth2Strategy } from './utils/strategies';
+import { ApiKeyStrategy, BasicStrategy, BasicAndTokenStrategy, OAuth2Strategy, TokenStrategy } from './utils/strategies';
 import { IAuthenticationStrategy } from './utils/strategies/interfaces';
 import { createServer } from './app.module';
 
@@ -267,8 +267,8 @@ export default startServer;
  * 
  * ### URL path structure:
  * 
- * The final route path follows the pattern: `/<version>/<endpoint>`
- * Example: `/v1/users/profile` for version 'v1' and endpoint 'users/profile'
+ * The final route path follows the pattern: `/<version>/<URL>`
+ * Example: `/v1/users/profile` for version 'v1' and URL 'users/profile'
  * 
  * This unified route generation approach ensures consistency across the API and simplifies
  * the route definition process while enforcing architectural patterns.
@@ -284,7 +284,7 @@ export default startServer;
  * @param routeConfig.version - The API version identifier (e.g., 'v1', 'v2').
  * Must match the pattern 'v' followed by a number (e.g., v1, v2, v10).
  * 
- * @param routeConfig.endpoint - The endpoint path excluding the version prefix.
+ * @param routeConfig.url - The URL path excluding the version prefix.
  * Can include route parameters (e.g., 'users/:id/profile')
  * and should not have a leading slash.
  * 
@@ -334,9 +334,9 @@ export {
   IConfigurationMap, 
   ApiKeyStrategy, 
   BasicStrategy, 
-  BasicAndBearerTokenStrategy, 
-  BearerTokenStrategy, 
+  BasicAndTokenStrategy, 
   OAuth2Strategy,
   IAuthenticationStrategy,
+  TokenStrategy,
   createServer
 };

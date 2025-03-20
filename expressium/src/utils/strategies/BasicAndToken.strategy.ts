@@ -3,32 +3,32 @@ import { AxiosRequestConfig } from 'axios/index';
 import { IAuthenticationStrategy } from './interfaces';
 
 /**
- * ## BasicAndBearerTokenStrategy
+ * ## BasicAndTokenStrategy
  * 
- * Authentication strategy that combines basic authentication with bearer token authentication.
+ * Authentication strategy that combines basic authentication with token authentication.
  * 
- * @description The BasicAndBearerTokenStrategy class provides a sophisticated authentication strategy
- * that uses basic authentication (username/password) to obtain a bearer token, and then uses that
+ * @description The BasicAndTokenStrategy class provides a sophisticated authentication strategy
+ * that uses basic authentication (username/password) to obtain a token, and then uses that
  * token for subsequent API requests. This strategy is particularly useful for APIs that:
  * 
- * - Require initial authentication via basic auth to obtain a short-lived access token
- * - Use bearer tokens for subsequent request authorization
+ * - Require initial authentication via basic authentication to obtain a short-lived access token
+ * - Use tokens for subsequent request authorization
  * - Have token expiration mechanisms requiring periodic token refresh
  * 
  * The strategy handles token lifecycle management including:
  * 
- * - Initial token acquisition using basic auth credentials
+ * - Initial token acquisition using basic authentication credentials
  * - Automatic token refresh when expired
  * - Manual token invalidation when needed
  * 
  * @method invalidateToken - Forces the strategy to obtain a new token on the next request.
- * @method authenticate - Add the bearer token to the request configuration, obtaining it first if necessary.
+ * @method authenticate - Add the token to the request configuration, obtaining it first if necessary.
  */
-export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
+export class BasicAndTokenStrategy implements IAuthenticationStrategy.IAuthenticationStrategy {
   /**
-   * ## bearerToken
+   * ## Token
    * 
-   * The bearer token obtained from the authentication endpoint.
+   * The token obtained from the authentication endpoint.
    * 
    * @description This token is used to authenticate subsequent requests to the API.
    * It is obtained using basic authentication credentials and stored until expiration.
@@ -36,12 +36,12 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 
    * @private
    */
-  private bearerToken: string | null = null;
+  private token: string | null = null;
 
   /**
-   * ## tokenExpiresAt
+   * ## expiresAt
    * 
-   * The timestamp (in milliseconds since epoch) when the bearer token expires.
+   * The timestamp (in milliseconds since epoch) when the token expires.
    * 
    * @description This timestamp is used to determine if the current token is still valid
    * before making API requests. The strategy will automatically refresh the token
@@ -49,16 +49,16 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 
    * @private
    */
-  private tokenExpiresAt: number = 0;
+  private expiresAt: number = 0;
 
   /**
    * ## constructor
    * 
-   * Creates a new BasicAndBearerTokenStrategy instance.
+   * Creates a new BasicAndTokenStrategy instance.
    * 
    * @description Initializes the authentication strategy with the necessary parameters
-   * for obtaining and managing bearer tokens. This includes the HTTP method and endpoint
-   * used for authentication, basic auth credentials, and optional parameters for token
+   * for obtaining and managing tokens. This includes the HTTP method and endpoint
+   * used for authentication, basic authentication credentials, and optional parameters for token
    * extraction and expiration handling.
    * 
    * @public
@@ -66,12 +66,12 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * @constructor
    * 
    * @param method - The HTTP method to use for the authentication request (e.g., 'get', 'post').
-   * @param endpoint - The URL of the authentication endpoint used to obtain the bearer token.
+   * @param url - The URL of the authentication endpoint used to obtain the token.
    * @param username - The username for basic authentication to the token endpoint.
    * @param password - The password for basic authentication to the token endpoint.
-   * @param tokenExpirationBuffer - Time in milliseconds to renew the token before its actual expiration (default 60 seconds). This creates a safety margin to prevent using tokens that are about to expire.
    * @param tokenExtractor - Custom function to extract the token string from the authentication response. Defaults to extracting from `response.data.data.token`.
    * @param expirationExtractor - Custom function to extract the expiration time (in milliseconds) from the authentication response. Defaults to extracting from `response.data.data.expiresIn`.
+   * @param expirationBuffer - Time in milliseconds to renew the token before its actual expiration (default 60 seconds). This creates a safety margin to prevent using tokens that are about to expire.
    * 
    * @throws May throw an error if invalid parameters are provided.
    */
@@ -86,7 +86,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
      * @private
      * @readonly
      */
-    private readonly endpoint: string,
+    private readonly url: string,
 
     /**
      * @private
@@ -99,13 +99,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
      * @readonly
      */
     private readonly password: string,
-    
-    /**
-     * @private
-     * @readonly
-     */
-    private readonly tokenExpirationBuffer: number = 60000,
-    
+        
     /**
      * @private
      * @readonly
@@ -116,13 +110,19 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
      * @private
      * @readonly
      */
-    private readonly expirationExtractor: (response: any) => number = (response) => response.data.data.expiresIn
+    private readonly expirationExtractor: (response: any) => number = (response) => response.data.data.expiresIn,
+
+    /**
+     * @private
+     * @readonly
+     */
+    private readonly expirationBuffer: number = 60000
   ) {}
 
   /**
    * ## obtainToken
    * 
-   * Obtains a new bearer token from the authentication endpoint.
+   * Obtains a new token from the authentication endpoint.
    * 
    * @description This method sends an authentication request to the configured endpoint
    * using the provided basic authentication credentials. It extracts the token and its
@@ -136,14 +136,14 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 
    * @async
    * 
-   * @returns A promise that resolves to the bearer token obtained from the authentication endpoint.
+   * @returns A promise that resolves to the token obtained from the authentication endpoint.
    * 
    * @throws Throws an error if the authentication request fails or if the token cannot be extracted.
    */
   private async obtainToken(): Promise<string> {
     try {
       const response = await (axios as any)[this.method](
-        this.endpoint,
+        this.url,
         {
           auth: {
             username: this.username,
@@ -155,23 +155,23 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
       const token = this.tokenExtractor(response);
       const expiresIn = this.expirationExtractor(response);
       
-      this.bearerToken = token;
-      this.tokenExpiresAt = Date.now() + expiresIn - this.tokenExpirationBuffer;
+      this.token = token;
+      this.expiresAt = Date.now() + expiresIn - this.expirationBuffer;
       
       return token;
     } catch (error: unknown) {
-      console.error('Failed to obtain bearer token:', error instanceof Error ? error.message : String(error));
+      console.error('Failed to obtain token:', error instanceof Error ? error.message : String(error));
       
-      throw new Error('Authentication failed: Unable to obtain bearer token');
+      throw new Error('Authentication failed: Unable to obtain token');
     }
   }
 
   /**
    * ## isTokenValid
    * 
-   * Checks if the current bearer token is valid and not expired.
+   * Checks if the current token is valid and not expired.
    * 
-   * @description This method determines if the currently stored bearer token is valid
+   * @description This method determines if the currently stored token is valid
    * by checking if it exists and if its expiration time has not been reached.
    * The comparison includes the configured expiration buffer to ensure tokens are
    * refreshed before they actually expire.
@@ -181,7 +181,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * @returns True if the token is valid and not expired, false otherwise.
    */
   private isTokenValid(): boolean {
-    return !!this.bearerToken && Date.now() < this.tokenExpiresAt;
+    return !!this.token && Date.now() < this.expiresAt;
   }
 
   /**
@@ -189,7 +189,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 
    * Forces the strategy to obtain a new token on the next request.
    * 
-   * @description This method manually invalidates the current bearer token by
+   * @description This method manually invalidates the current token by
    * clearing it and resetting the expiration timestamp. This forces the strategy
    * to obtain a new token on the next API request.
    * 
@@ -203,16 +203,16 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * @public
    */
   public invalidateToken(): void {
-    this.bearerToken = null;
-    this.tokenExpiresAt = 0;
+    this.token = null;
+    this.expiresAt = 0;
   }
 
   /**
    * ## authenticate
    * 
-   * Authenticates the request by adding the bearer token to the configuration.
+   * Authenticates the request by adding the token to the configuration.
    * 
-   * @description This method ensures a valid bearer token is available, obtaining a new one
+   * @description This method ensures a valid token is available, obtaining a new one
    * if necessary, and then adds it to the request configuration's Authorization header.
    * 
    * The method:
@@ -222,7 +222,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * 3. Adds the token to the request headers
    * 4. Preserves any existing headers in the request configuration
    * 
-   * This implementation follows the OAuth 2.0 Bearer Token Usage specification (RFC 6750).
+   * This implementation follows the OAuth 2.0 token usage specification (RFC 6750).
    * 
    * @async
    * 
@@ -231,7 +231,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
    * @param configurationMap - The Axios request configuration to modify.
    * 
    * @returns A promise that resolves to the modified request
-   * configuration with the bearer token added.
+   * configuration with the token added.
    * 
    * @throws May throw an error if token acquisition fails.
    */
@@ -244,7 +244,7 @@ export class BasicAndBearerTokenStrategy implements IAuthenticationStrategy.IAut
       ...configurationMap,
       headers: {
         ...configurationMap.headers,
-        Authorization: `Bearer ${this.bearerToken}`
+        Authorization: `Bearer ${ this.token }`
       }
     };
   }

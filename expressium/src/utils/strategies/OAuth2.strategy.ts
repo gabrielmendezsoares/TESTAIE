@@ -13,13 +13,13 @@ import { IAuthenticationStrategy } from './interfaces';
  * 
  * - Using existing access tokens for API requests
  * - Automatic token refresh when tokens expire
- * - Proper Bearer token authorization header formatting
+ * - Proper token authorization header formatting
  * 
  * This strategy is particularly useful for authenticating requests to APIs that implement
  * the OAuth 2.0 protocol, such as Google, Microsoft, Facebook, and many other modern API services.
  * 
- * The implementation follows the OAuth 2.0 specification (RFC 6749) and Bearer Token
- * Usage specification (RFC 6750).
+ * The implementation follows the OAuth 2.0 specification (RFC 6749) and token
+ * usage specification (RFC 6750).
  * 
  * @method authenticate - Authenticates the request by adding the OAuth2 token to the headers.
  * @method refresh - Refreshes the OAuth2 tokens.
@@ -35,7 +35,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * resources on behalf of the resource owner.
    * 
    * The token is included in the Authorization header of API requests with the
-   * Bearer token scheme.
+   * token scheme.
    * 
    * @private
    */
@@ -86,7 +86,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * @param clientId - The client identifier issued to the client during application registration.
    * @param clientSecret - The client secret issued to the client during application registration.
    * @param tokenUrl - The URL of the authorization server's token endpoint used for token refresh.
-   * @param initialToken - Initial OAuth2 token data including access token, refresh token, and expiration.
+   * @param initialTokenMap - Initial OAuth2 token data including access token, refresh token, and expiration.
    * 
    * @throws If initial token data is missing or incomplete.
    */
@@ -112,7 +112,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
     /**
      * @public
      */
-    public initialToken?: {
+    public initialTokenMap?: {
       /**
        * ## accessToken
        * 
@@ -144,58 +144,17 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
       expiresIn: number;
     }
   ) {
-    if (!initialToken) {
+    if (!initialTokenMap) {
       throw new Error('Initial token configuration is required for OAuth2Strategy');
     }
 
-    this.accessToken = initialToken.accessToken;
-    this.refreshToken = initialToken.refreshToken;
-    this.expiresAt = new Date(Date.now() + initialToken.expiresIn * 1000);
+    this.accessToken = initialTokenMap.accessToken;
+    this.refreshToken = initialTokenMap.refreshToken;
+    this.expiresAt = new Date(Date.now() + initialTokenMap.expiresIn * 1000);
 
     if (!this.accessToken || !this.refreshToken) {
       throw new Error('Both accessToken and refreshToken are required for OAuth2Strategy');
     }
-  }
-
-  /**
-   * ## authenticate
-   * 
-   * Authenticates the request by adding the OAuth2 token to the headers.
-   * 
-   * @description This method ensures a valid access token is available by checking
-   * if the current token is expired and refreshing it if necessary. It then adds
-   * the access token to the request headers using the Bearer token authentication scheme.
-   * 
-   * The method follows the OAuth 2.0 Bearer Token Usage specification (RFC 6750) for
-   * formatting the Authorization header.
-   * 
-   * @public
-   * 
-   * @async
-   * 
-   * @param configurationMap - The Axios request configuration to modify.
-   * 
-   * @returns A promise that resolves to the modified request
-   * configuration with the OAuth2 token added.
-   * 
-   * @throws If no valid access token is available and token refresh fails.
-   */
-  public async authenticate(configurationMap: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
-    if (this.shouldRefresh()) {
-      await this.refresh();
-    }
-
-    if (!this.accessToken) {
-      throw new Error('No valid access token available');
-    }
-
-    return {
-      ...configurationMap,
-      headers: {
-        ...configurationMap.headers,
-        Authorization: `Bearer ${ this.accessToken }`
-      }
-    };
   }
 
   /**
@@ -219,9 +178,7 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
    * @returns True if the token needs to be refreshed, false otherwise.
    */
   private shouldRefresh(): boolean {
-    return !this.accessToken 
-      || !this.expiresAt 
-      || Date.now() >= this.expiresAt.getTime() - 300000;
+    return !this.accessToken || !this.expiresAt || Date.now() >= this.expiresAt.getTime() - 300000;
   }
 
   /**
@@ -276,5 +233,46 @@ export class OAuth2Strategy implements IAuthenticationStrategy.IAuthenticationSt
     } catch (error: unknown) {
       throw new Error(`Failed to refresh OAuth2 token: ${ error instanceof Error ? error.message : 'Unknown error' }`);
     }
+  }
+
+  /**
+   * ## authenticate
+   * 
+   * Authenticates the request by adding the OAuth2 token to the headers.
+   * 
+   * @description This method ensures a valid access token is available by checking
+   * if the current token is expired and refreshing it if necessary. It then adds
+   * the access token to the request headers using the token authentication scheme.
+   * 
+   * The method follows the OAuth 2.0 token usage specification (RFC 6750) for
+   * formatting the Authorization header.
+   * 
+   * @public
+   * 
+   * @async
+   * 
+   * @param configurationMap - The Axios request configuration to modify.
+   * 
+   * @returns A promise that resolves to the modified request
+   * configuration with the OAuth2 token added.
+   * 
+   * @throws If no valid access token is available and token refresh fails.
+   */
+  public async authenticate(configurationMap: AxiosRequestConfig<any>): Promise<AxiosRequestConfig<any>> {
+    if (this.shouldRefresh()) {
+      await this.refresh();
+    }
+
+    if (!this.accessToken) {
+      throw new Error('No valid access token available');
+    }
+
+    return {
+      ...configurationMap,
+      headers: {
+        ...configurationMap.headers,
+        Authorization: `Bearer ${ this.accessToken }`
+      }
+    };
   }
 }

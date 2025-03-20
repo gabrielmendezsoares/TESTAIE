@@ -63,7 +63,7 @@ export class HttpClient {
    * 
    * Common authentication strategies include:
 
-   * - Bearer token authentication
+   * - Token authentication
    * - Basic authentication
    * - API key authentication
    * - OAuth2 flows
@@ -193,7 +193,7 @@ export class HttpClient {
    * 
    * Common authentication strategies include:
    * 
-   * - Bearer token authentication
+   * - Token authentication
    * - Basic authentication (username/password)
    * - API key authentication
    * - OAuth2 flows with token management

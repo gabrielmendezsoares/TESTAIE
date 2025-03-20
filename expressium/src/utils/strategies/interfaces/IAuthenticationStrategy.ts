@@ -40,7 +40,7 @@ export interface IAuthenticationStrategy {
    * 
    * Authentication strategies can include various mechanisms such as:
    * 
-   * - Bearer token authentication
+   * - Token authentication
    * - Basic authentication
    * - OAuth2 flows
    * - API key authentication

@@ -14,9 +14,9 @@ import
       IConfigurationMap, 
       ApiKeyStrategy, 
       BasicStrategy, 
-      BasicAndBearerTokenStrategy, 
-      BearerTokenStrategy, 
+      BasicAndTokenStrategy, 
       OAuth2Strategy,
+      TokenStrategy,
       IAuthenticationStrategy,
       createServer
     } 

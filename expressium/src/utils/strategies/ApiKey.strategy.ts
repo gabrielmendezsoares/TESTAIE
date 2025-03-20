@@ -28,17 +28,17 @@ export class ApiKeyStrategy implements IAuthenticationStrategy.IAuthenticationSt
    * 
    * @constructor
    * 
-   * @param apiKey - The API key to use for authentication. This value will be sent with each request.
+   * @param key - The API key to use for authentication. This value will be sent with each request.
    * @param headerName - The name of the header to use for the API key. Defaults to 'X-API-Key' if not provided.
    * 
-   * @throws May throw an error if the apiKey is empty or invalid.
+   * @throws May throw an error if the key is empty or invalid.
    */
   public constructor(
     /**
      * @private
      * @readonly
      */
-    private readonly apiKey: string,
+    private readonly key: string,
 
     /**
      * @private
@@ -67,7 +67,7 @@ export class ApiKeyStrategy implements IAuthenticationStrategy.IAuthenticationSt
       ...configurationMap,
       headers: {
         ...configurationMap.headers,
-        [this.headerName]: this.apiKey
+        [this.headerName]: this.key
       }
     };
   }
