@@ -3,21 +3,35 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `api_types`;
 DROP TABLE IF EXISTS `application_types`;
+DROP TABLE IF EXISTS `authentication_types`;
 DROP TABLE IF EXISTS `bulletin_grouping_types`;
 DROP TABLE IF EXISTS `database_types`;
 DROP TABLE IF EXISTS `data_types`;
+DROP TABLE IF EXISTS `formatting_types`;
 DROP TABLE IF EXISTS `method_types`;
+DROP TABLE IF EXISTS `response_types`;
+DROP TABLE IF EXISTS `role_types`;
 DROP TABLE IF EXISTS `service_types`;
 DROP TABLE IF EXISTS `table_types`;
 
 
-DROP TABLE IF EXISTS `apis`;
-DROP TABLE IF EXISTS `queries`;
 DROP TABLE IF EXISTS `sankhya_database_configuration`;
 DROP TABLE IF EXISTS `segware_configuration`;
 DROP TABLE IF EXISTS `sigma_desktop_database_configuration`;
 DROP TABLE IF EXISTS `three_mod_database_configuration`;
+
+
+DROP TABLE IF EXISTS `apis`;
+DROP TABLE IF EXISTS `queries`;
 DROP TABLE IF EXISTS `users`;
+
+
+DROP PROCEDURE IF EXISTS `create_single_row_table_triggers`;
+DROP PROCEDURE IF EXISTS `validate_json_3d_string_array`;
+DROP PROCEDURE IF EXISTS `validate_json_2d_string_array`;
+DROP PROCEDURE IF EXISTS `validate_api_authentication`;
+DROP PROCEDURE IF EXISTS `validate_relational_formatting`;
+DROP FUNCTION IF EXISTS `validate_users_role_list`;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
@@ -45,6 +59,19 @@ CREATE TABLE `application_types` (
 	PRIMARY KEY (`id`),
     
     INDEX `idx_application_type` (`application_type`),
+	INDEX `idx_created_at` (`created_at`),
+    INDEX `idx_updated_at` (`updated_at`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `authentication_types` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `authentication_type` VARCHAR(191) NOT NULL UNIQUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   
+	PRIMARY KEY (`id`),
+    
+    INDEX `idx_authentication_type` (`authentication_type`),
 	INDEX `idx_created_at` (`created_at`),
     INDEX `idx_updated_at` (`updated_at`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -88,6 +115,19 @@ CREATE TABLE `data_types` (
     INDEX `idx_updated_at` (`updated_at`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `formatting_types` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `formatting_type` VARCHAR(191) NOT NULL UNIQUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   
+	PRIMARY KEY (`id`),
+    
+    INDEX `idx_formatting_type` (`formatting_type`),
+	INDEX `idx_created_at` (`created_at`),
+    INDEX `idx_updated_at` (`updated_at`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `method_types` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `method_type` VARCHAR(191) NOT NULL UNIQUE,
@@ -97,6 +137,32 @@ CREATE TABLE `method_types` (
     PRIMARY KEY (`id`),
     
     INDEX `idx_method_type` (`method_type`),
+	INDEX `idx_created_at` (`created_at`),
+    INDEX `idx_updated_at` (`updated_at`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `response_types` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `response_type` VARCHAR(191) NOT NULL UNIQUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   
+	PRIMARY KEY (`id`),
+    
+    INDEX `idx_response_type` (`response_type`),
+	INDEX `idx_created_at` (`created_at`),
+    INDEX `idx_updated_at` (`updated_at`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `role_types` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `role_type` VARCHAR(191) NOT NULL UNIQUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   
+	PRIMARY KEY (`id`),
+    
+    INDEX `idx_role_type` (`role_type`),
 	INDEX `idx_created_at` (`created_at`),
     INDEX `idx_updated_at` (`updated_at`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -127,96 +193,6 @@ CREATE TABLE `table_types` (
     INDEX `idx_updated_at` (`updated_at`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
-CREATE TABLE `apis` (
-	`id` INT NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(191) NOT NULL,
-    `subtitle` VARCHAR(191),
-    `application_type` VARCHAR(191) NOT NULL,
-	`service_type` VARCHAR(191) NOT NULL,
-    `data_type` VARCHAR(191) NOT NULL,
-    `label_map` JSON,
-    `bulletin_grouping_type` VARCHAR(191),
-    `bulletin_formatting_content_selection_filter_list` JSON,
-    `bulletin_formatting_content_separator_list` JSON,
-    `bulletin_formatting_label_list` JSON,
-    `method_type` VARCHAR(191) NOT NULL,
-	`authentication_endpoint` VARCHAR(191),
-    `data_endpoint` VARCHAR(191) NOT NULL,
-    `username` VARCHAR(191) NOT NULL,
-    `password` VARCHAR(191) NOT NULL,
-    `body` JSON,
-	`is_bulletin_formatting_key_value_label` BOOLEAN,
-    `is_api_active` BOOLEAN NOT NULL DEFAULT TRUE,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    PRIMARY KEY (`id`),
-    
-    FOREIGN KEY (`application_type`) REFERENCES `application_types`(`application_type`) ON DELETE CASCADE,
-	FOREIGN KEY (`service_type`) REFERENCES `service_types`(`service_type`) ON DELETE CASCADE,
-	FOREIGN KEY (`data_type`) REFERENCES `data_types`(`data_type`) ON DELETE CASCADE,
-    FOREIGN KEY (`bulletin_grouping_type`) REFERENCES `bulletin_grouping_types`(`bulletin_grouping_type`) ON DELETE CASCADE,
-    FOREIGN KEY (`method_type`) REFERENCES `method_types`(`method_type`) ON DELETE CASCADE,
-    
-    INDEX `idx_title` (`title`),
-    INDEX `idx_subtitle` (`subtitle`),
-    INDEX `idx_application_type` (`application_type`),
-    INDEX `idx_service_type` (`service_type`),
-    INDEX `idx_data_type` (`data_type`),
-    INDEX `idx_bulletin_grouping_type` (`bulletin_grouping_type`),
-    INDEX `idx_method_type` (`method_type`),
-    INDEX `idx_authentication_endpoint` (`authentication_endpoint`),
-    INDEX `idx_data_endpoint` (`data_endpoint`),
-    INDEX `idx_username` (`username`),
-    INDEX `idx_password` (`password`),
-	INDEX `idx_is_bulletin_formatting_key_value_label` (`is_bulletin_formatting_key_value_label`),
-    INDEX `idx_is_api_active` (`is_api_active`),
-	INDEX `idx_created_at` (`created_at`),
-    INDEX `idx_updated_at` (`updated_at`)
-) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `queries` (
-    `id` INT NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(191) NOT NULL,
-    `subtitle` VARCHAR(191),
-    `application_type` VARCHAR(191) NOT NULL,
-	`service_type` VARCHAR(191) NOT NULL,
-    `data_type` VARCHAR(191) NOT NULL,
-    `label_map` JSON,
-    `bulletin_grouping_type` VARCHAR(191),
-    `bulletin_formatting_content_selection_filter_list` JSON,
-    `bulletin_formatting_content_separator_list` JSON,
-    `bulletin_formatting_label_list` JSON,
-    `database_type` VARCHAR(191) NOT NULL,
-    `sql` LONGTEXT NOT NULL,
-	`is_bulletin_formatting_key_value_label` BOOLEAN,
-    `is_query_periodic` BOOLEAN NOT NULL DEFAULT FALSE,
-    `is_query_active` BOOLEAN NOT NULL DEFAULT TRUE,
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    PRIMARY KEY (`id`),
-    
-    FOREIGN KEY (`application_type`) REFERENCES `application_types`(`application_type`) ON DELETE CASCADE,
-	FOREIGN KEY (`service_type`) REFERENCES `service_types`(`service_type`) ON DELETE CASCADE,
-	FOREIGN KEY (`data_type`) REFERENCES `data_types`(`data_type`) ON DELETE CASCADE,
-    FOREIGN KEY (`bulletin_grouping_type`) REFERENCES `bulletin_grouping_types`(`bulletin_grouping_type`) ON DELETE CASCADE,
-    FOREIGN KEY (`database_type`) REFERENCES `database_types`(`database_type`) ON DELETE CASCADE,
-    
-    INDEX `idx_title` (`title`),
-    INDEX `idx_subtitle` (`subtitle`),
-    INDEX `idx_application_type` (`application_type`),
-    INDEX `idx_service_type` (`service_type`),
-    INDEX `idx_data_type` (`data_type`),
-    INDEX `idx_bulletin_grouping_type` (`bulletin_grouping_type`),
-    INDEX `idx_database_type` (`database_type`),
-	INDEX `idx_is_bulletin_formatting_key_value_label` (`is_bulletin_formatting_key_value_label`),
-	INDEX `idx_is_query_periodic` (`is_query_periodic`),
-	INDEX `idx_is_query_active` (`is_query_active`),
-	INDEX `idx_created_at` (`created_at`),
-    INDEX `idx_updated_at` (`updated_at`)
-) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `sankhya_database_configuration` (
 	`id` INT NOT NULL AUTO_INCREMENT,
@@ -299,6 +275,133 @@ CREATE TABLE `three_mod_database_configuration` (
     INDEX `idx_updated_at` (`updated_at`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+CREATE TABLE `apis` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) UNIQUE NOT NULL,
+    `heading` VARCHAR(191) NOT NULL,
+    `subheading` VARCHAR(191),
+    `application_type` VARCHAR(191) NOT NULL,
+	`service_type` VARCHAR(191) NOT NULL,
+    `data_type` VARCHAR(191) NOT NULL,
+	`method_type` VARCHAR(191) NOT NULL,
+	`authentication_type` VARCHAR(191),
+    `response_type` VARCHAR(191) NOT NULL,
+	`formatting_type` VARCHAR(191),
+	`bulletin_grouping_type` VARCHAR(191),
+	`basic_authentication_username` VARCHAR(191),
+    `basic_authentication_password` VARCHAR(191),
+    `token_authentication_token` VARCHAR(191),
+	`basic_and_token_authentication_url` VARCHAR(191),
+    `basic_and_token_authentication_token_extractor_list` VARCHAR(191),
+	`basic_and_token_authentication_expiration_extractor_list` VARCHAR(191),
+	`basic_and_token_authentication_expiration_buffer` INT,
+	`api_key_authentication_key` VARCHAR(191),
+	`api_key_authentication_header_name` VARCHAR(191),
+    `oauth2_authentication_client_id` VARCHAR(191),
+    `oauth2_authentication_client_secret` VARCHAR(191),
+    `oauth2_authentication_token_url` VARCHAR(191),
+	`oauth2_authentication_initial_token_map` JSON,
+    `data_url` VARCHAR(191) NOT NULL,
+    `body` JSON,
+	`relational_formatting_content_selection_list` JSON,
+    `relational_formatting_content_separation_list` JSON,
+	`relational_formatting_content_key_map` JSON,
+    `relational_formatting_content_key_list` JSON,
+    `relational_formatting_is_key_value_content_key` BOOLEAN,
+	`is_response_mapped` BOOLEAN NOT NULL,
+    `is_api_active` BOOLEAN NOT NULL DEFAULT TRUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+	CONSTRAINT `oauth2_authentication_initial_token_map` CHECK (JSON_TYPE(`oauth2_authentication_initial_token_map`) = 'OBJECT'),
+    
+    PRIMARY KEY (`id`),
+    
+    FOREIGN KEY (`application_type`) REFERENCES `application_types`(`application_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`service_type`) REFERENCES `service_types`(`service_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`data_type`) REFERENCES `data_types`(`data_type`) ON DELETE CASCADE,
+    FOREIGN KEY (`method_type`) REFERENCES `method_types`(`method_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`authentication_type`) REFERENCES `authentication_types`(`authentication_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`response_type`) REFERENCES `response_types`(`response_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`formatting_type`) REFERENCES `formatting_types`(`formatting_type`) ON DELETE CASCADE,
+    FOREIGN KEY (`bulletin_grouping_type`) REFERENCES `bulletin_grouping_types`(`bulletin_grouping_type`) ON DELETE CASCADE,
+    
+    INDEX `idx_heading` (`heading`),
+    INDEX `idx_subheading` (`subheading`),
+    INDEX `idx_application_type` (`application_type`),
+    INDEX `idx_service_type` (`service_type`),
+    INDEX `idx_data_type` (`data_type`),
+	INDEX `idx_method_type` (`method_type`),
+	INDEX `idx_authentication_type` (`authentication_type`),
+	INDEX `idx_response_type` (`response_type`),
+	INDEX `idx_formatting_type` (`formatting_type`),
+	INDEX `idx_bulletin_grouping_type` (`bulletin_grouping_type`),
+	INDEX `idx_basic_authentication_username` (`basic_authentication_username`),
+	INDEX `idx_basic_authentication_password` (`basic_authentication_password`),
+	INDEX `idx_token_authentication_token` (`token_authentication_token`),
+	INDEX `idx_basic_and_token_authentication_url` (`basic_and_token_authentication_url`),
+	INDEX `idx_basic_and_token_authentication_expiration_buffer` (`basic_and_token_authentication_expiration_buffer`),
+	INDEX `idx_api_key_authentication_key` (`api_key_authentication_key`),
+	INDEX `idx_api_key_authentication_header_name` (`api_key_authentication_header_name`),
+	INDEX `idx_oauth2_authentication_client_id` (`oauth2_authentication_client_id`),
+	INDEX `idx_oauth2_authentication_client_secret` (`oauth2_authentication_client_secret`),
+	INDEX `idx_oauth2_authentication_token_url` (`oauth2_authentication_token_url`),
+	INDEX `idx_data_url` (`data_url`),
+	INDEX `idx_relational_formatting_is_key_value_content_key` (`relational_formatting_is_key_value_content_key`),
+    INDEX `idx_is_response_mapped` (`is_response_mapped`),
+    INDEX `idx_is_api_active` (`is_api_active`),
+    INDEX `idx_created_at` (`created_at`),    
+	INDEX `idx_updated_at` (`updated_at`)          
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `queries` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) UNIQUE NOT NULL,
+    `heading` VARCHAR(191) NOT NULL,
+    `subheading` VARCHAR(191),
+    `application_type` VARCHAR(191) NOT NULL,
+	`service_type` VARCHAR(191) NOT NULL,
+    `data_type` VARCHAR(191) NOT NULL,
+	`formatting_type` VARCHAR(191),
+	`bulletin_grouping_type` VARCHAR(191),
+	`relational_formatting_content_selection_list` JSON,
+    `relational_formatting_content_separation_list` JSON,
+	`relational_formatting_content_key_map` JSON,
+    `relational_formatting_content_key_list` JSON,
+    `relational_formatting_is_key_value_content_key` BOOLEAN,
+	`database_type` VARCHAR(191) NOT NULL,
+    `sql` LONGTEXT NOT NULL,
+	`is_response_mapped` BOOLEAN NOT NULL,
+	`is_query_periodic` BOOLEAN NOT NULL DEFAULT TRUE,
+    `is_query_active` BOOLEAN NOT NULL DEFAULT TRUE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (`id`),
+    
+    FOREIGN KEY (`application_type`) REFERENCES `application_types`(`application_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`service_type`) REFERENCES `service_types`(`service_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`data_type`) REFERENCES `data_types`(`data_type`) ON DELETE CASCADE,
+	FOREIGN KEY (`formatting_type`) REFERENCES `formatting_types`(`formatting_type`) ON DELETE CASCADE,
+    FOREIGN KEY (`bulletin_grouping_type`) REFERENCES `bulletin_grouping_types`(`bulletin_grouping_type`) ON DELETE CASCADE,
+    
+    INDEX `idx_heading` (`heading`),
+    INDEX `idx_subheading` (`subheading`),
+    INDEX `idx_application_type` (`application_type`),
+    INDEX `idx_service_type` (`service_type`),
+    INDEX `idx_data_type` (`data_type`),
+	INDEX `idx_formatting_type` (`formatting_type`),
+	INDEX `idx_bulletin_grouping_type` (`bulletin_grouping_type`),
+	INDEX `idx_relational_formatting_is_key_value_content_key` (`relational_formatting_is_key_value_content_key`),
+	INDEX `idx_database_type` (`database_type`),
+    INDEX `idx_is_response_mapped` (`is_response_mapped`),
+	INDEX `idx_is_query_periodic` (`is_query_periodic`),
+    INDEX `idx_is_query_active` (`is_query_active`),
+    INDEX `idx_created_at` (`created_at`),    
+	INDEX `idx_updated_at` (`updated_at`)        
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `users` (
 	`id` INT NOT NULL AUTO_INCREMENT,
     `application_type` VARCHAR(191) NOT NULL,
@@ -324,827 +427,607 @@ CREATE TABLE `users` (
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-DELIMITER $$
+DELIMITER //
 
 
-CREATE TRIGGER `apis_bulletin_formatting_content_selection_filter_list_insert`
+CREATE PROCEDURE `create_single_row_table_triggers`(IN `table_name` VARCHAR(255))
+BEGIN
+    SET @insert_trigger = CONCAT('
+    CREATE TRIGGER `', `table_name`, '_insert` 
+    BEFORE INSERT ON `', `table_name`, '` 
+    FOR EACH ROW 
+    BEGIN
+        DECLARE row_count INT;
+        
+        SELECT COUNT(*) INTO row_count FROM `', `table_name`, '`;
+        
+        IF row_count >= 1 THEN
+            SIGNAL SQLSTATE ''45000'' 
+            SET MESSAGE_TEXT = ''Only one row is allowed in the ', `table_name`, ' table.'';
+        END IF;
+    END;
+    ');
+    
+    SET @update_trigger = CONCAT('
+    CREATE TRIGGER `', `table_name`, '_update` 
+    BEFORE UPDATE ON `', `table_name`, '` 
+    FOR EACH ROW 
+    BEGIN
+        DECLARE row_count INT;
+        
+        SELECT COUNT(*) INTO row_count FROM `', `table_name`, '`;
+        
+        IF row_count >= 1 THEN
+            SIGNAL SQLSTATE ''45000'' 
+            SET MESSAGE_TEXT = ''Only one row is allowed in the ', `table_name`, ' table.'';
+        END IF;
+    END;
+    ');
+    
+    SET @drop_insert = CONCAT('DROP TRIGGER IF EXISTS `', `table_name`, '_insert`');
+    SET @drop_update = CONCAT('DROP TRIGGER IF EXISTS `', `table_name`, '_update`');
+    
+    PREPARE stmt FROM @drop_insert;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    
+    PREPARE stmt FROM @drop_update;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    
+    PREPARE stmt FROM @insert_trigger;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    
+    PREPARE stmt FROM @update_trigger;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END;
+//
+
+CREATE PROCEDURE `validate_json_3d_string_array`(
+    IN `json_data` JSON,
+    IN `field_name` VARCHAR(100),
+    OUT `is_valid` BOOLEAN,
+    OUT `error_message` VARCHAR(255)
+)
+BEGIN
+    SET `is_valid` = TRUE;
+    
+    IF JSON_TYPE(`json_data`) != 'ARRAY' THEN
+        SET `is_valid` = FALSE;
+        SET `error_message` = CONCAT(`field_name`, ' must be an array');
+    END IF;
+    
+    SET @first_level_length = JSON_LENGTH(`json_data`);
+    SET @i = 0;
+
+    WHILE @i < @first_level_length AND `is_valid` = TRUE DO
+        IF JSON_TYPE(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = CONCAT('Item at first level index ', @i, ' is not an array');
+        ELSE
+            SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, ']')));
+            SET @j = 0;
+            
+            WHILE @j < @second_level_length AND `is_valid` = TRUE DO
+                IF JSON_TYPE(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
+                    SET `is_valid` = FALSE;
+                    SET `error_message` = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
+                ELSE
+                    SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, '][', @j, ']')));
+                    SET @k = 0;
+                    
+                    WHILE @k < @third_level_length AND `is_valid` = TRUE DO
+                        IF JSON_TYPE(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
+                            SET `is_valid` = FALSE;
+                            SET `error_message` = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
+                        END IF;
+                        
+                        SET @k = @k + 1;
+                    END WHILE;
+                END IF;
+                
+                SET @j = @j + 1;
+            END WHILE;
+        END IF;
+        
+        SET @i = @i + 1;
+    END WHILE;
+END;
+//
+
+CREATE PROCEDURE `validate_json_2d_string_array`(
+    IN `json_data` JSON,
+    IN `field_name` VARCHAR(100),
+    OUT `is_valid` BOOLEAN,
+    OUT `error_message` VARCHAR(255)
+)
+BEGIN
+    SET `is_valid` = TRUE;
+    
+    IF JSON_TYPE(`json_data`) != 'ARRAY' THEN
+        SET `is_valid` = FALSE;
+        SET `error_message` = CONCAT(`field_name`, ' must be an array');
+    END IF;
+    
+    SET @first_level_length = JSON_LENGTH(`json_data`);
+    SET @i = 0;
+
+    WHILE @i < @first_level_length AND `is_valid` = TRUE DO
+        IF JSON_TYPE(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = CONCAT('Item at first level index ', @i, ' is not an array');
+        ELSE
+            SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, ']')));
+            SET @j = 0;
+            
+            WHILE @j < @second_level_length AND `is_valid` = TRUE DO
+                IF JSON_TYPE(JSON_EXTRACT(`json_data`, CONCAT('$[', @i, '][', @j, ']'))) != 'STRING' THEN
+                    SET `is_valid` = FALSE;
+                    SET `error_message` = CONCAT('Item at index [', @i, '][', @j, '] is not a string');
+                END IF;
+                
+                SET @j = @j + 1;
+            END WHILE;
+        END IF;
+        
+        SET @i = @i + 1;
+    END WHILE;
+END;
+//
+
+CREATE PROCEDURE `validate_api_authentication`(
+    IN `authentication_type` VARCHAR(50),
+    IN `api_key_authentication_key` VARCHAR(255),
+    IN `api_key_authentication_header_name` VARCHAR(255),
+    IN `basic_authentication_username` VARCHAR(255),
+    IN `basic_authentication_password` VARCHAR(255),
+    IN `token_authentication_token` VARCHAR(255),
+    IN `basic_and_token_authentication_url` VARCHAR(255),
+    IN `basic_and_token_authentication_token_extractor_list` JSON,
+    IN `basic_and_token_authentication_expiration_extractor_list` JSON,
+    IN `basic_and_token_authentication_expiration_buffer` INT,
+    IN `oauth2_authentication_client_id` VARCHAR(255),
+    IN `oauth2_authentication_client_secret` VARCHAR(255),
+    IN `oauth2_authentication_token_url` VARCHAR(255),
+    IN `oauth2_authentication_initial_token_map` JSON,
+    OUT `is_valid` BOOLEAN,
+    OUT `error_message` VARCHAR(255)
+)
+BEGIN
+    SET `is_valid` = TRUE;
+    
+    IF `authentication_type` = 'API Key' THEN
+        IF `api_key_authentication_key` IS NULL OR `api_key_authentication_header_name` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid api_key_authentication fields';
+        END IF;
+    END IF;
+    
+    IF `authentication_type` = 'Basic' THEN
+        IF `basic_authentication_username` IS NULL OR `basic_authentication_password` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid basic_authentication fields';
+        END IF;
+    END IF;
+    
+    IF `authentication_type` = 'Basic And Token' THEN
+        IF `basic_authentication_username` IS NULL OR `basic_authentication_password` IS NULL OR 
+           `token_authentication_token` IS NULL OR `basic_and_token_authentication_url` IS NULL OR 
+           `basic_and_token_authentication_token_extractor_list` IS NULL OR `basic_and_token_authentication_expiration_extractor_list` IS NULL OR 
+           `basic_and_token_authentication_expiration_buffer` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid basic_and_token_authentication fields';
+        END IF;
+    END IF;
+    
+    IF `authentication_type` = 'OAuth 2.0' THEN
+        IF `oauth2_authentication_client_id` IS NULL OR `oauth2_authentication_client_secret` IS NULL OR 
+           `oauth2_authentication_token_url` IS NULL OR `oauth2_authentication_initial_token_map` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid oauth2_authentication fields';
+        END IF;
+    END IF;
+    
+    IF `authentication_type` = 'Token' THEN
+        IF `basic_username` IS NULL OR `basic_password` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid basic_authentication fields';
+        END IF;
+    END IF;
+END;
+//
+
+CREATE PROCEDURE `validate_relational_formatting`(
+    IN `formatting_type` VARCHAR(50),
+    IN `relational_formatting_content_selection_list` JSON,
+    IN `relational_formatting_content_separation_list` JSON,
+    IN `relational_formatting_content_key_list` JSON,
+    IN `relational_formatting_is_key_value_content_key` BOOLEAN,
+    OUT `is_valid` BOOLEAN,
+    OUT `error_message` VARCHAR(255)
+)
+BEGIN
+    SET `is_valid` = TRUE;
+    
+    IF `formatting_type` = 'Relational' THEN
+        IF `relational_formatting_content_selection_list` IS NULL OR `relational_formatting_content_separation_list` IS NULL OR `relational_formatting_content_key_list` IS NULL OR `relational_formatting_is_key_value_content_key` IS NULL THEN
+            SET `is_valid` = FALSE;
+            SET `error_message` = 'Invalid relational_formatting fields';
+        END IF;
+    END IF;
+END;
+//
+
+CREATE FUNCTION `validate_users_role_list`(`role_list` JSON) 
+RETURNS BOOLEAN
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE `i` INT DEFAULT 0;
+    DECLARE `array_size` INT;
+    DECLARE `current_type` VARCHAR(255);
+    DECLARE `is_valid` BOOLEAN DEFAULT TRUE;
+  
+    IF JSON_TYPE(`role_list`) != 'ARRAY' THEN
+        RETURN FALSE;
+    END IF;
+  
+    SET `array_size` = JSON_LENGTH(`role_list`);
+  
+    IF `array_size` = 0 THEN
+        RETURN TRUE;
+    END IF;
+  
+    WHILE `i` < `array_size` AND `is_valid` = TRUE DO
+        SET `current_type` = JSON_UNQUOTE(JSON_EXTRACT(`role_list`, CONCAT('$[', `i`, ']')));
+        
+        IF JSON_TYPE(JSON_EXTRACT(`role_list`, CONCAT('$[', `i`, ']'))) != 'STRING' THEN
+            SET `is_valid` = FALSE;
+        ELSE
+            IF NOT EXISTS (SELECT 1 FROM `role_types` WHERE `role_type` COLLATE utf8mb4_unicode_ci = `current_type`) THEN
+                SET `is_valid` = FALSE;
+            END IF;
+        END IF;
+        
+        SET `i` = `i` + 1;
+    END WHILE;
+
+    RETURN `is_valid`;
+END;
+//
+
+
+CREATE TRIGGER `before_apis_insert`
 BEFORE INSERT ON `apis`
 FOR EACH ROW
 BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
+    DECLARE `is_valid` BOOLEAN DEFAULT TRUE;
+    DECLARE `error_message` VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_selection_filter_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_selection_filter_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_selection_filter_list`);
-            SET @i = 0;
+    CALL `validate_api_authentication`(
+        NEW.`authentication_type`,
+        NEW.`api_key_authentication_key`,
+        NEW.`api_key_authentication_header_name`,
+        NEW.`basic_authentication_username`,
+        NEW.`basic_authentication_password`,
+        NEW.`token_authentication_token`,
+        NEW.`basic_and_token_authentication_url`,
+        NEW.`basic_and_token_authentication_token_extractor_list`,
+        NEW.`basic_and_token_authentication_expiration_extractor_list`,
+        NEW.`basic_and_token_authentication_expiration_buffer`,
+        NEW.`oauth2_authentication_client_id`,
+        NEW.`oauth2_authentication_client_secret`,
+        NEW.`oauth2_authentication_token_url`,
+        NEW.`oauth2_authentication_initial_token_map`,
+        `is_valid`,
+        `error_message`
+    );
+    
+    IF NOT `is_valid` THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+    END IF;
 
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    CALL `validate_relational_formatting`(
+        NEW.`formatting_type`,
+        NEW.`relational_formatting_content_selection_list`,
+        NEW.`relational_formatting_content_separation_list`,
+        NEW.`relational_formatting_content_key_list`,
+        NEW.`relational_formatting_is_key_value_content_key`,
+        `is_valid`,
+        `error_message`
+    );
+    
+    IF NOT `is_valid` THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_selection_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_selection_list`,
+            'relational_formatting_content_selection_list',
+            `is_valid`,
+            `error_message`
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
         END IF;
     END IF;
-END$$
+    
+    IF NEW.`relational_formatting_content_separation_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_separation_list`,
+            'relational_formatting_content_separation_list',
+            `is_valid`,
+            `error_message`
+        );
+        
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+        END IF;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_key_list` IS NOT NULL THEN
+        CALL `validate_json_2d_string_array`(
+            NEW.`relational_formatting_content_key_list`,
+            'relational_formatting_content_key_list',
+            `is_valid`,
+            `error_message`
+        );
+        
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+        END IF;
+    END IF;
+END;
+//
 
-CREATE TRIGGER `apis_bulletin_formatting_content_selection_filter_list_update`
+CREATE TRIGGER `before_apis_update`
 BEFORE UPDATE ON `apis`
 FOR EACH ROW
 BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
+    DECLARE `is_valid` BOOLEAN DEFAULT TRUE;
+    DECLARE `error_message` VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_selection_filter_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_selection_filter_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_selection_filter_list`);
-            SET @i = 0;
+    CALL `validate_api_authentication`(
+        NEW.`authentication_type`,
+        NEW.`api_key_authentication_key`,
+        NEW.`api_key_authentication_header_name`,
+        NEW.`basic_authentication_username`,
+        NEW.`basic_authentication_password`,
+        NEW.`token_authentication_token`,
+        NEW.`basic_and_token_authentication_url`,
+        NEW.`basic_and_token_authentication_token_extractor_list`,
+        NEW.`basic_and_token_authentication_expiration_extractor_list`,
+        NEW.`basic_and_token_authentication_expiration_buffer`,
+        NEW.`oauth2_authentication_client_id`,
+        NEW.`oauth2_authentication_client_secret`,
+        NEW.`oauth2_authentication_token_url`,
+        NEW.`oauth2_authentication_initial_token_map`,
+        `is_valid`,
+        `error_message`
+    );
+    
+    IF NOT `is_valid` THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+    END IF;
 
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    CALL `validate_relational_formatting`(
+        NEW.`formatting_type`,
+        NEW.`relational_formatting_content_selection_list`,
+        NEW.`relational_formatting_content_separation_list`,
+        NEW.`relational_formatting_content_key_list`,
+        NEW.`relational_formatting_is_key_value_content_key`,
+        `is_valid`,
+        `error_message`
+    );
+    
+    IF NOT `is_valid` THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_selection_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_selection_list`,
+            'relational_formatting_content_selection_list',
+            `is_valid`,
+            `error_message`
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
         END IF;
     END IF;
-END$$
-
-
-CREATE TRIGGER `apis_bulletin_formatting_content_separator_list_insert`
-BEFORE INSERT ON `apis`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_separator_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_separator_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_separator_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_separator_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    IF NEW.`relational_formatting_content_separation_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_separation_list`,
+            'relational_formatting_content_separation_list',
+            `is_valid`,
+            `error_message`
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
         END IF;
     END IF;
-END$$
-
-CREATE TRIGGER `apis_bulletin_formatting_content_separator_list_update`
-BEFORE UPDATE ON `apis`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_separator_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_separator_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_separator_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_separator_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    IF NEW.`relational_formatting_content_key_list` IS NOT NULL THEN
+        CALL `validate_json_2d_string_array`(
+            NEW.`relational_formatting_content_key_list`,
+            'relational_formatting_content_key_list',
+            `is_valid`,
+            `error_message`
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT `is_valid` THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = `error_message`;
         END IF;
     END IF;
-END$$
+END;
+//
 
-
-CREATE TRIGGER `apis_bulletin_formatting_label_list_insert`
-BEFORE INSERT ON `apis`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
-    
-    IF NEW.`bulletin_formatting_label_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_label_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_label_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_label_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']')));
-                    
-                    SET @j = 0;
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'STRING' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not a string');
-                        END IF;
-                       
-                       SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
-        
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
-        END IF;
-    END IF;
-END$$
-
-CREATE TRIGGER `apis_bulletin_formatting_label_list_update`
-BEFORE UPDATE ON `apis`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
-    
-    IF NEW.`bulletin_formatting_label_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_label_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_label_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_label_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']')));
-                    
-                    SET @j = 0;
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'STRING' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not a string');
-                        END IF;
-                       
-                       SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
-        
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
-        END IF;
-    END IF;
-END$$
-
-
-CREATE TRIGGER `queries_bulletin_formatting_content_selection_filter_list_insert`
+CREATE TRIGGER `before_queries_insert`
 BEFORE INSERT ON `queries`
 FOR EACH ROW
 BEGIN
     DECLARE is_valid BOOLEAN DEFAULT TRUE;
     DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_selection_filter_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_selection_filter_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_selection_filter_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    CALL `validate_relational_formatting`(
+        NEW.`formatting_type`,
+        NEW.`relational_formatting_content_selection_list`,
+        NEW.`relational_formatting_content_separation_list`,
+        NEW.`relational_formatting_content_key_list`,
+        NEW.`relational_formatting_is_key_value_content_key`,
+        is_valid,
+        error_message
+    );
+    
+    IF NOT is_valid THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_selection_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_selection_list`,
+            'relational_formatting_content_selection_list',
+            is_valid,
+            error_message
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
         END IF;
     END IF;
-END$$
+    
+    IF NEW.`relational_formatting_content_separation_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_separation_list`,
+            'relational_formatting_content_separation_list',
+            is_valid,
+            error_message
+        );
+        
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+        END IF;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_key_list` IS NOT NULL THEN
+        CALL `validate_json_2d_string_array`(
+            NEW.`relational_formatting_content_key_list`,
+            'relational_formatting_content_key_list',
+            is_valid,
+            error_message
+        );
+        
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+        END IF;
+    END IF;
+END;
+//
 
-CREATE TRIGGER `queries_bulletin_formatting_content_selection_filter_list_update`
+CREATE TRIGGER `before_queries_update`
 BEFORE UPDATE ON `queries`
 FOR EACH ROW
 BEGIN
     DECLARE is_valid BOOLEAN DEFAULT TRUE;
     DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_selection_filter_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_selection_filter_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_selection_filter_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_selection_filter_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    CALL `validate_relational_formatting`(
+        NEW.`formatting_type`,
+        NEW.`relational_formatting_content_selection_list`,
+        NEW.`relational_formatting_content_separation_list`,
+        NEW.`relational_formatting_content_key_list`,
+        NEW.`relational_formatting_is_key_value_content_key`,
+        is_valid,
+        error_message
+    );
+    
+    IF NOT is_valid THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    END IF;
+    
+    IF NEW.`relational_formatting_content_selection_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_selection_list`,
+            'relational_formatting_content_selection_list',
+            is_valid,
+            error_message
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
         END IF;
     END IF;
-END$$
-
-
-CREATE TRIGGER `queries_bulletin_formatting_content_separator_list_insert`
-BEFORE INSERT ON `queries`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_separator_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_separator_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_separator_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_separator_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    IF NEW.`relational_formatting_content_separation_list` IS NOT NULL THEN
+        CALL `validate_json_3d_string_array`(
+            NEW.`relational_formatting_content_separation_list`,
+            'relational_formatting_content_separation_list',
+            is_valid,
+            error_message
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
         END IF;
     END IF;
-END$$
-
-CREATE TRIGGER `queries_bulletin_formatting_content_separator_list_update`
-BEFORE UPDATE ON `queries`
-FOR EACH ROW
-BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
     
-    IF NEW.`bulletin_formatting_content_separator_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_content_separator_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_content_separator_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_content_separator_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, ']')));
-                    SET @j = 0;
-                    
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'ARRAY' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not an array');
-                        ELSE
-                            SET @third_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, ']')));
-                            SET @k = 0;
-                            
-                            WHILE @k < @third_level_length AND is_valid = TRUE DO
-                                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_content_separator_list`, CONCAT('$[', @i, '][', @j, '][', @k, ']'))) != 'STRING' THEN
-                                    SET is_valid = FALSE;
-                                    SET error_message = CONCAT('Item at index [', @i, '][', @j, '][', @k, '] is not a string');
-                                END IF;
-                                
-                                SET @k = @k + 1;
-                            END WHILE;
-                        END IF;
-                        
-                        SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
+    IF NEW.`relational_formatting_content_key_list` IS NOT NULL THEN
+        CALL `validate_json_2d_string_array`(
+            NEW.`relational_formatting_content_key_list`,
+            'relational_formatting_content_key_list',
+            is_valid,
+            error_message
+        );
         
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
+        IF NOT is_valid THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
         END IF;
     END IF;
-END$$
+END;
+//
 
-
-CREATE TRIGGER `queries_bulletin_formatting_label_list_insert`
-BEFORE INSERT ON `queries`
+CREATE TRIGGER `before_users_insert`
+BEFORE INSERT ON `users`
 FOR EACH ROW
 BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
-    
-    IF NEW.`bulletin_formatting_label_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_label_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_label_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_label_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']')));
-                    
-                    SET @j = 0;
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'STRING' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not a string');
-                        END IF;
-                       
-                       SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
-        
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
-        END IF;
+    DECLARE is_valid BOOLEAN;
+  
+    SET is_valid = `validate_users_role_list`(NEW.`role_list`);
+  
+    IF is_valid = FALSE THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid role_list: All elements must be strings that exist in the `role_types` table';
     END IF;
-END$$
+END;
+//
 
-CREATE TRIGGER `queries_bulletin_formatting_label_list_update`
-BEFORE UPDATE ON `queries`
+CREATE TRIGGER `before_users_update`
+BEFORE UPDATE ON `users`
 FOR EACH ROW
 BEGIN
-    DECLARE is_valid BOOLEAN DEFAULT TRUE;
-    DECLARE error_message VARCHAR(255);
-    
-    IF NEW.`bulletin_formatting_label_list` IS NOT NULL THEN
-        IF JSON_TYPE(NEW.`bulletin_formatting_label_list`) != 'ARRAY' THEN
-            SET is_valid = FALSE;
-            SET error_message = 'bulletin_formatting_label_list must be an array';
-        ELSE
-            SET @first_level_length = JSON_LENGTH(NEW.`bulletin_formatting_label_list`);
-            SET @i = 0;
-
-            WHILE @i < @first_level_length AND is_valid = TRUE DO
-                IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']'))) != 'ARRAY' THEN
-                    SET is_valid = FALSE;
-                    SET error_message = CONCAT('Item at first level index ', @i, ' is not an array');
-                ELSE
-                    SET @second_level_length = JSON_LENGTH(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, ']')));
-                    
-                    SET @j = 0;
-                    WHILE @j < @second_level_length AND is_valid = TRUE DO
-                        IF JSON_TYPE(JSON_EXTRACT(NEW.`bulletin_formatting_label_list`, CONCAT('$[', @i, '][', @j, ']'))) != 'STRING' THEN
-                            SET is_valid = FALSE;
-                            SET error_message = CONCAT('Item at index [', @i, '][', @j, '] is not a string');
-                        END IF;
-                       
-                       SET @j = @j + 1;
-                    END WHILE;
-                END IF;
-                
-                SET @i = @i + 1;
-            END WHILE;
-        END IF;
-        
-        IF is_valid = FALSE THEN
-            SIGNAL SQLSTATE '45000' 
-            SET MESSAGE_TEXT = error_message;
-        END IF;
+    DECLARE is_valid BOOLEAN;
+  
+    SET is_valid = `validate_users_role_list`(NEW.`role_list`);
+  
+    IF is_valid = FALSE THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid role_list: All elements must be strings that exist in the `role_types` table';
     END IF;
-END$$
+END;
+//
 
 
-CREATE TRIGGER `apis_insert`
-BEFORE INSERT ON `apis`
-FOR EACH ROW
-BEGIN
-	DECLARE invalid_formatting BOOLEAN DEFAULT FALSE;
-
-	IF NEW.`application_type` = 'boletins-gerenciais' THEN
-		SET invalid_formatting = 
-			(NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_content_separator_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_label_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`is_bulletin_formatting_key_value_label` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL));
-
-		IF invalid_formatting THEN
-			SIGNAL SQLSTATE '45000' 
-			SET MESSAGE_TEXT = 'All bulletin formatting fields must be provided if any of them is not null for application_type boletins-gerenciais';
-		END IF;
-	END IF;
-END$$
-
-CREATE TRIGGER `apis_update`
-BEFORE UPDATE ON `apis`
-FOR EACH ROW
-BEGIN
-	DECLARE invalid_formatting BOOLEAN DEFAULT FALSE;
-
-	IF NEW.`application_type` = 'boletins-gerenciais' THEN
-		SET invalid_formatting = 
-			(NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_content_separator_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_label_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`is_bulletin_formatting_key_value_label` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL));
-
-		IF invalid_formatting THEN
-			SIGNAL SQLSTATE '45000' 
-			SET MESSAGE_TEXT = 'All bulletin formatting fields must be provided if any of them is not null for application_type boletins-gerenciais';
-		END IF;
-	END IF;
-END$$
-
-
-CREATE TRIGGER `queries_insert`
-BEFORE INSERT ON `queries`
-FOR EACH ROW
-BEGIN
-	DECLARE invalid_formatting BOOLEAN DEFAULT FALSE;
-
-	IF NEW.`application_type` = 'boletins-gerenciais' THEN
-		SET invalid_formatting = 
-			(NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_content_separator_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_label_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`is_bulletin_formatting_key_value_label` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL));
-
-		IF invalid_formatting THEN
-			SIGNAL SQLSTATE '45000' 
-			SET MESSAGE_TEXT = 'All bulletin formatting fields must be provided if any of them is not null for application_type boletins-gerenciais';
-		END IF;
-	END IF;
-END$$
-
-CREATE TRIGGER `queries_update`
-BEFORE UPDATE ON `queries`
-FOR EACH ROW
-BEGIN
-	DECLARE invalid_formatting BOOLEAN DEFAULT FALSE;
-
-	IF NEW.`application_type` = 'boletins-gerenciais' THEN
-		SET invalid_formatting = 
-			(NEW.`bulletin_formatting_content_selection_filter_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_content_separator_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`bulletin_formatting_label_list` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`is_bulletin_formatting_key_value_label` IS NULL)) OR
-			(NEW.`is_bulletin_formatting_key_value_label` IS NOT NULL AND (NEW.`bulletin_formatting_content_selection_filter_list` IS NULL OR NEW.`bulletin_formatting_content_separator_list` IS NULL OR NEW.`bulletin_formatting_label_list` IS NULL));
-
-		IF invalid_formatting THEN
-			SIGNAL SQLSTATE '45000' 
-			SET MESSAGE_TEXT = 'All bulletin formatting fields must be provided if any of them is not null for application_type boletins-gerenciais';
-		END IF;
-	END IF;
-END$$
-
-
-CREATE TRIGGER `sankhya_database_configuration_insert` 
-BEFORE INSERT ON `sankhya_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `sankhya_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the sankhya_database_configuration table.';
-    END IF;
-END$$
-
-CREATE TRIGGER `sankhya_database_configuration_update` 
-BEFORE UPDATE ON `sankhya_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `sankhya_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the sankhya_database_configuration table.';
-    END IF;
-END$$
-
-
-CREATE TRIGGER `segware_configuration_insert` 
-BEFORE INSERT ON `segware_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `segware_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the segware_configuration table.';
-    END IF;
-END$$
-
-CREATE TRIGGER `segware_configuration_update` 
-BEFORE UPDATE ON `segware_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `segware_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the segware_configuration table.';
-    END IF;
-END$$
-
-
-CREATE TRIGGER `sigma_desktop_database_configuration_insert` 
-BEFORE INSERT ON `sigma_desktop_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `sigma_desktop_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the sigma_desktop_database_configuration table.';
-    END IF;
-END$$
-
-CREATE TRIGGER `sigma_desktop_database_configuration_update` 
-BEFORE UPDATE ON `sigma_desktop_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `sigma_desktop_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the sigma_desktop_database_configuration table.';
-    END IF;
-END$$
-
-
-CREATE TRIGGER `three_mod_database_configuration_insert` 
-BEFORE INSERT ON `three_mod_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `three_mod_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the three_mod_database_configuration table.';
-	END IF;
-END$$
-
-CREATE TRIGGER `three_mod_database_configuration_update` 
-BEFORE UPDATE ON `three_mod_database_configuration`
-FOR EACH ROW 
-BEGIN
-    DECLARE row_count INT;
-    
-    SELECT COUNT(*) INTO row_count FROM `three_mod_database_configuration`;
-    
-    IF row_count >= 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one row is allowed in the three_mod_database_configuration table.';
-	END IF;
-END$$
+CALL create_single_row_table_triggers('sankhya_database_configuration');
+CALL create_single_row_table_triggers('segware_configuration');
+CALL create_single_row_table_triggers('sigma_desktop_database_configuration');
+CALL create_single_row_table_triggers('three_mod_database_configuration');
 
 
 DELIMITER ;
@@ -1152,12 +1035,24 @@ DELIMITER ;
 
 INSERT INTO `api_types` (`api_type`)
 VALUES
+    ('api-interpreter'),
+    ('query-interpreter'),
     ('storage-manager');
 
 INSERT INTO `application_types` (`application_type`)
 VALUES
-	('storage-manager'),
-    ('boletins-gerenciais');
+    ('api-interpreter'),
+    ('boletins-gerenciais'),
+    ('query-interpreter'),
+    ('storage-manager');
+    
+INSERT INTO `authentication_types` (`authentication_type`)
+VALUES
+    ('API Key'),
+    ('Basic'),
+    ('Basic And Token'),
+    ('OAuth 2.0'),
+    ('Token');
     
 INSERT INTO `bulletin_grouping_types` (`bulletin_grouping_type`)
 VALUES
@@ -1175,68 +1070,64 @@ VALUES
     ('Contagem'),
     ('Relatório');
 
+INSERT INTO `formatting_types` (`formatting_type`)
+VALUES
+    ('Relational');
+
 INSERT INTO `method_types` (`method_type`)
 VALUES
     ('GET'),
-    ('POST'),
-    ('PUT'),
-	('PATCH'),
     ('DELETE'),
-	('HEAD');
+    ('HEAD'),
+    ('PATCH'),
+    ('POST'),
+    ('PUT');
+
+INSERT INTO `response_types` (`response_type`)
+VALUES
+    ('arraybuffer'),
+    ('blob'),
+    ('document'),
+    ('formdata'),
+    ('json'),
+    ('stream'),
+    ('text');
+
+INSERT INTO `role_types` (`role_type`)
+VALUES
+    ('admin'),
+    ('user');
 
 INSERT INTO `service_types` (`service_type`)
 VALUES
-	('Google'),
+    ('Google'),
     ('Sigma Cloud'),
     ('Sigma Desktop'),
     ('Three Mod');
     
 INSERT INTO `table_types` (`table_type`)
 VALUES
-	('api_types'),
+    ('api_types'),
     ('application_types'),
+    ('authentication_types'),
     ('bulletin_grouping_types'),
     ('database_types'),
-	('data_types'),
-	('method_types'),
-	('prisma_method_types'),
-	('service_types'),
-	('table_types'),
-	('apis'),
-	('queries'),
-	('sankhya_database_configuration'),
-	('segware_configuration'),
-	('sigma_desktop_database_configuration'),
-	('three_mod_database_configuration');
+    ('data_types'),
+    ('formatting_types'),
+    ('method_types'),
+    ('response_types'),
+    ('role_types'),
+    ('service_types'),
+    ('table_types'),
+    ('apis'),
+    ('queries'),
+    ('sankhya_database_configuration'),
+    ('segware_configuration'),
+    ('sigma_desktop_database_configuration'),
+    ('three_mod_database_configuration'),
+    ('users');
     
-INSERT INTO `apis` (`title`, `subtitle`, `application_type`, `service_type`, `data_type`, `label_map`, `bulletin_grouping_type`, `bulletin_formatting_content_selection_filter_list`, `bulletin_formatting_content_separator_list`, `bulletin_formatting_label_list`, `method_type`, `authentication_endpoint`, `data_endpoint`, `username`, `password`, `body`, `is_bulletin_formatting_key_value_label`, `is_api_active`) 
-VALUES 
-    ('Nota do Google', NULL, 'boletins-gerenciais', 'Google', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'POST', 'http://localhost:3100/api/v1/google/manager/main/get/authentication', 'http://localhost:3100/api/v1/google/manager/main/get/rating-and-reviews', 'admin', '$2a$10$8/wO4yQap0G497YYXurz5uED0aeVzzJATziLvqzncU/IsxNoeJTYW', NULL, NULL, TRUE),
-    ('OS 24h', NULL, 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'POST', 'http://localhost:3110/api/v1/sigma/cloud/main/get/authentication', 'http://localhost:3110/api/v1/sigma/cloud/main/get/service-order', 'admin', '$2a$10$8/wO4yQap0G497YYXurz5uED0aeVzzJATziLvqzncU/IsxNoeJTYW', NULL, NULL, TRUE),
-    ('Teste periódico', NULL, 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'POST', 'http://localhost:3110/api/v1/sigma/cloud/main/get/authentication', 'http://localhost:3110/api/v1/sigma/cloud/main/get/periodic-test', 'admin', '$2a$10$8/wO4yQap0G497YYXurz5uED0aeVzzJATziLvqzncU/IsxNoeJTYW', NULL, NULL, TRUE),
-    ('Licenças', NULL, 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'B', '[[["Utilizados", "Disponíveis"]], [["Utilizados", "Disponíveis"]]]', '[[["x"]], [["x"]]]', '[["Cloud AL"], ["Cloud AC"]]', 'POST', 'http://localhost:3110/api/v1/sigma/cloud/main/get/authentication', 'http://localhost:3110/api/v1/sigma/cloud/main/get/system-status', 'admin', '$2a$10$8/wO4yQap0G497YYXurz5uED0aeVzzJATziLvqzncU/IsxNoeJTYW', NULL, FALSE, TRUE);
-  
-INSERT INTO `queries` (`title`, `subtitle`, `application_type`, `service_type`, `data_type`, `label_map`, `bulletin_grouping_type`, `bulletin_formatting_content_selection_filter_list`, `bulletin_formatting_content_separator_list`, `bulletin_formatting_label_list`, `database_type`, `sql`, `is_bulletin_formatting_key_value_label`, `is_query_periodic`, `is_query_active`) 
-VALUES 
-	('Ativos Gerais', NULL, 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'B', NULL, NULL, NULL, 'Sankhya', "SELECT (SELECT COUNT(1) FROM (SELECT DISTINCT accounts.id_empresa, accounts.id_central FROM sankhya.ad_dbcsigma accounts WHERE 1 = 1 AND accounts.fg_ativo = 1 AND accounts.ctrl_central = 1)) AS Desktop, (SELECT COUNT(1) FROM (SELECT DISTINCT accounts.company_id, accounts.account_code FROM sankhya.ad_accountsc accounts WHERE 1 = 1 AND accounts.enabled = 'S' AND (accounts.alarm_enabled = 'S' OR accounts.access_control_enabled = 'S'))) AS Cloud, (SELECT SUM(product_service_contracts.qtdeprevista) FROM sankhya.tcsocc occurrences_a INNER JOIN sankhya.tcspsc product_service_contracts ON product_service_contracts.numcontrato = occurrences_a.numcontrato AND product_service_contracts.codprod = occurrences_a.codprod INNER JOIN sankhya.tcsoco occurrences_status_a ON occurrences_status_a.codocor = occurrences_a.codocor INNER JOIN sankhya.tcscon contract ON contract.numcontrato = occurrences_a.numcontrato WHERE 1 = 1 AND contract.ativo = 'S' AND occurrences_a.codprod IN (10127, 9685, 15284, 1078, 1764, 14076) AND occurrences_status_a.sitprod = 'A' AND occurrences_a.dtocor IN (SELECT max(occurrences_b.dtocor) FROM sankhya.tcsocc occurrences_b INNER JOIN sankhya.tcsoco occurrences_status_b ON occurrences_status_b.codocor = occurrences_b.codocor WHERE 1 = 1 AND occurrences_b.numcontrato = occurrences_a.numcontrato AND occurrences_b.codprod = occurrences_a.codprod AND occurrences_b.dtocor <= SYSDATE)) AS Sankhya FROM dual;", NULL, FALSE, TRUE),
-	('Cloud', 'Novos / Cancelados', 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'B', '[[["Novos", "Cancelados"]], [["Novos", "Cancelados"]], [["Novos", "Cancelados"]]]', '[[["x"]], [["x"]], [["x"]]]', '[["Mês"], ["Mês"], ["Mês"]]', 'Sankhya', "WITH new_accounts AS (SELECT TO_CHAR(TRUNC(SYSDATE, 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'S' AND (accounts_logs_a.access_control_enabled = 'S' OR accounts_logs_a.alarm_enabled = 'S') AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(SYSDATE, 'Mon') AND TRUNC(SYSDATE) AND accounts_logs_a.change_date IN (SELECT MIN(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.access_control_enabled = 'S' OR accounts_logs_b.alarm_enabled = 'S') AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log acccounts_logs_b ON accounts_b.id = acccounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND acccounts_logs_b.enabled = 'S' AND (acccounts_logs_b.access_control_enabled = 'S' OR acccounts_logs_b.alarm_enabled = 'S') AND acccounts_logs_b.change_date < accounts_logs_a.change_date) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'S' AND (accounts_logs_a.access_control_enabled = 'S' OR accounts_logs_a.alarm_enabled = 'S') AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -1))) AND accounts_logs_a.change_date IN (SELECT MIN(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.access_control_enabled = 'S' OR accounts_logs_b.alarm_enabled = 'S') AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.access_control_enabled = 'S' OR accounts_logs_b.alarm_enabled = 'S') AND accounts_logs_b.change_date < accounts_logs_a.change_date) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'S' AND (accounts_logs_a.access_control_enabled = 'S' OR accounts_logs_a.alarm_enabled = 'S') AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -2))) AND accounts_logs_a.change_date IN (SELECT MIN(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.access_control_enabled = 'S' OR accounts_logs_b.alarm_enabled = 'S') AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.access_control_enabled = 'S' OR accounts_logs_b.alarm_enabled = 'S') AND accounts_logs_b.change_date < accounts_logs_a.change_date)), canceled_accounts AS (SELECT TO_CHAR(TRUNC(SYSDATE, 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'N' AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(SYSDATE, 'Mon') AND TRUNC(SYSDATE) AND accounts_logs_a.change_date IN (SELECT MAX(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_c ON accounts_b.id = accounts_logs_c.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_c.enabled = 'S' AND (accounts_logs_c.alarm_enabled = 'S' OR accounts_logs_c.access_control_enabled = 'S')) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_b.enabled = 'S') AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.id <> accounts_a.id AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'N' AND accounts_logs_b.change_date > accounts_logs_a.change_date) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'N' AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHs(SYSDATE, -1))) AND accounts_logs_a.change_date IN (SELECT MAX(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.alarm_enabled = 'S' OR accounts_logs_b.access_control_enabled = 'S')) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_b.enabled = 'S') AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.id <> accounts_a.id AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'N' AND accounts_logs_b.change_date > accounts_logs_a.change_date) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_accountsc accounts_a INNER JOIN sankhya.ad_accountsc_log accounts_logs_a ON accounts_a.id = accounts_logs_a.account_id WHERE 1 = 1 AND accounts_logs_a.enabled = 'N' AND TRUNC(accounts_logs_a.change_date, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHs(SYSDATE, -2))) AND accounts_logs_a.change_date IN (SELECT MAX(accounts_logs_b.change_date) FROM sankhya.ad_accountsc_log accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.account_id = accounts_logs_a.account_id) AND EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'S' AND (accounts_logs_b.alarm_enabled = 'S' OR accounts_logs_b.access_control_enabled = 'S')) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b WHERE 1 = 1 AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_b.enabled = 'S') AND NOT EXISTS (SELECT 1 FROM sankhya.ad_accountsc accounts_b INNER JOIN sankhya.ad_accountsc_log accounts_logs_b ON accounts_b.id = accounts_logs_b.account_id WHERE 1 = 1 AND accounts_b.id <> accounts_a.id AND accounts_b.account_code = accounts_a.account_code AND accounts_b.company_id = accounts_a.company_id AND accounts_logs_b.enabled = 'N' AND accounts_logs_b.change_date > accounts_logs_a.change_date)) SELECT COALESCE(new_accounts_reference.month, canceled_accounts_reference.month) AS Mês, new_accounts_reference.quantity AS Novos, canceled_accounts_reference.quantity Cancelados FROM new_accounts new_accounts_reference FULL OUTER JOIN canceled_accounts canceled_accounts_reference ON new_accounts_reference.month = canceled_accounts_reference.month;", FALSE, FALSE, TRUE),
-    ('Clientes', 'Novos / Faturados', 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'B', '[[["Novos", "Faturados"]], [["Novos", "Faturados"]], [["Novos", "Faturados"]]]', '[[["x"]], [["x"]], [["x"]]]', '[["Mês"], ["Mês"], ["Mês"]]', 'Sankhya', "SELECT TO_CHAR(TRUNC(occurrence_a.dtocor, 'Mon'), 'Mon') AS Mês, COUNT(1) AS Novos, SUM(CASE WHEN EXISTS (SELECT 1 FROM sankhya.tgfcab heading INNER JOIN sankhya.tgfite information ON information.nunota = heading.nunota WHERE 1 = 1 AND heading.tipmov = 'P' AND heading.numcontrato = contract.numcontrato AND information.codprod = occurrence_a.codprod AND TRUNC(heading.dtval, 'Mon') >= TRUNC(ADD_MONTHS(TRUNC(occurrence_a.dtocor, 'Mon'), 1), 'Mon') AND TRUNC(heading.dtval, 'Mon') <= TRUNC(ADD_MONTHS(TRUNC(occurrence_a.dtocor, 'Mon'), 2), 'Mon')) THEN 1 ELSE 0 END) AS Faturados FROM sankhya.tcsocc occurrence_a INNER JOIN sankhya.tcsoco occurrence_status_a ON occurrence_status_a.codocor = occurrence_a.codocor INNER JOIN sankhya.tcscon contract ON contract.numcontrato = occurrence_a.numcontrato WHERE 1 = 1 AND occurrence_a.codprod IN (10127, 9685, 15284, 1078, 1764, 14076) AND occurrence_status_a.sitprod = 'A' AND TRUNC(occurrence_a.dtocor, 'Mon') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon') AND TRUNC(SYSDATE, 'Mon') AND occurrence_a.dtocor IN (SELECT MIN(occurrence_b.dtocor) FROM sankhya.tcsocc occurrence_b INNER JOIN sankhya.tcsoco occurrence_status_b ON occurrence_status_b.codocor = occurrence_b.codocor WHERE 1 = 1 AND occurrence_b.numcontrato = occurrence_a.numcontrato AND occurrence_b.codprod = occurrence_a.codprod AND occurrence_status_b.sitprod = 'A') GROUP BY TRUNC(occurrence_a.dtocor, 'Mon') ORDER BY TRUNC(occurrence_a.dtocor, 'Mon') DESC;", FALSE, FALSE, TRUE),
-    ('Títulos', 'Vencimento / Pago / Atraso', 'boletins-gerenciais', 'Sigma Cloud', 'Contagem', NULL, 'B', '[[["Vencimento", "Pago", "Atraso"]], [["Vencimento", "Pago", "Atraso"]], [["Vencimento", "Pago", "Atraso"]]]', '[[["x", "x"]], [["x", "x"]], [["x", "x"]]]', '[["Mês"], ["Mês"], ["Mês"]]', 'Sankhya', "SELECT TO_CHAR(financial.dtvenc, 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS Mês, COUNT(*) AS Vencimento, SUM(CASE WHEN financial.dhbaixa IS NOT NULL THEN 1 ELSE 0 END) AS Pago, SUM(CASE WHEN financial.dhbaixa IS NULL THEN 1 ELSE 0 END) AS Atraso FROM sankhya.tgffin financial INNER JOIN sankhya.tgfpar partner ON partner.codparc = financial.codparc INNER JOIN sankhya.tsiemp company ON company.codemp = financial.codemp WHERE financial.recdesp = 1 AND financial.CODTIPTIT = 4 AND financial.PROVISAO = 'N' AND financial.codnat IN (80201001, 80201002, 80201003, 80201004, 80201005, 80201006, 80201007, 80201010, 80201012, 80201016, 80201021, 80201025, 80201029, 80201031, 80201032, 80201033, 80202001) AND financial.dtvenc BETWEEN ADD_MONTHS(TRUNC(SYSDATE, 'Mon'), -2) AND TRUNC(ADD_MONTHS(SYSDATE, 1), 'Mon') - 1 GROUP BY TO_CHAR(financial.dtvenc, 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE'), TO_CHAR(financial.dtvenc, 'YYYYMM') ORDER BY TO_CHAR(financial.dtvenc, 'YYYYMM') DESC;", FALSE, FALSE, TRUE),
-	('Arrombamentos', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Corporativo FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN osdefeito defect ON defect.idosdefeito = service_order.idosdefeito LEFT JOIN colaborador employee ON employee.cd_colaborador = central.cd_tecnico_responsavel LEFT JOIN rota way ON way.cd_rota = central.id_rota WHERE 1 = 1 AND abertura BETWEEN (CONVERT(VARCHAR(10), CURRENT_TIMESTAMP-2, 120) + ' 06:00:00.000') AND CURRENT_TIMESTAMP AND employee.nm_colaborador LIKE 'ROTA 5%' AND defect.descricaodefeito IN ('ARROMBAMENTO')", NULL, FALSE, TRUE),
-    ('Arrombamentos', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Portaria FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN osdefeito defect ON defect.idosdefeito = service_order.idosdefeito WHERE 1 = 1 AND abertura BETWEEN (CONVERT(VARCHAR(10), CURRENT_TIMESTAMP - 2, 120) + ' 06:00:00.000') AND CURRENT_TIMESTAMP AND company.cd_empresa IN ( 10037, 10052 ) AND client_group.cd_grupo_cliente IN ( 20066, 20136, 20136, 20108, 20124, 20066, 20166, 20127 ) AND defect.descricaodefeito IN ('ARROMBAMENTO')", NULL, FALSE, TRUE),
-	('Arrombamentos', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Varejo FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN osdefeito defect ON defect.idosdefeito = service_order.idosdefeito WHERE 1 = 1 AND abertura BETWEEN (CONVERT(VARCHAR(10), CURRENT_TIMESTAMP - 2, 120) + ' 06:00:00.000') AND CURRENT_TIMESTAMP AND company.cd_empresa IN ( 10017, 10021, 10020, 10025, 10054 ) AND client_group.cd_grupo_cliente IN ( 20066, 20136, 20136, 20108, 20124, 20066, 20166, 20127 ) AND defect.descricaodefeito IN ('ARROMBAMENTO')", NULL, FALSE, TRUE),
-    ('Clientes em Falha', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "WITH last_event AS (SELECT cd_cliente, MAX(dt_recebido) AS event_date FROM view_historico WHERE dt_recebido BETWEEN CURRENT_TIMESTAMP - 120 AND CURRENT_TIMESTAMP GROUP BY cd_cliente), last_xxx1_event AS (SELECT history.cd_cliente, history.dt_recebido AS event_date FROM view_historico history INNER JOIN last_event last_event_reference ON history.cd_cliente = last_event_reference.cd_cliente WHERE 1 = 1 AND history.dt_recebido = last_event_reference.event_date AND history.cd_evento = 'XXX1'), last_e602_or_1602_event AS (SELECT cd_cliente, MAX(dt_recebido) AS event_date FROM view_historico WHERE cd_evento IN ('E602', '1602') GROUP BY cd_cliente), results AS ( SELECT central.id_central, CONVERT(VARCHAR, xxx1_event_reference.event_date, 103) AS xxx1_date, CONVERT(VARCHAR, e602_or_1602_event_reference.event_date, 103) AS e602_or_1602_date, DATEDIFF(DAY, e602_or_1602_event_reference.event_date, xxx1_event_reference.event_date) AS failure_day, client_group.nm_descricao AS client_group, company.nm_razao_social AS empresa FROM last_xxx1_event xxx1_event_reference LEFT JOIN last_e602_or_1602_event e602_or_1602_event_reference ON xxx1_event_reference.cd_cliente = e602_or_1602_event_reference.cd_cliente JOIN dbcentral central ON xxx1_event_reference.cd_cliente = central.cd_cliente JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente JOIN empresa company ON company.cd_empresa = central.id_empresa WHERE 1 = 1 AND central.fg_ativo = 1 AND central.ctrl_central = 1 AND central.ctrl_teste = 1 AND central.id_estado = 'GO' AND DATEDIFF(DAY, e602_or_1602_event_reference.event_date, xxx1_event_reference.event_date) > 0 ) SELECT COUNT(DISTINCT id_central) AS Total FROM results", NULL, FALSE, TRUE), 
-    ('Desktop', 'Novos / Cancelados', 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'B', '[[["Novos", "Cancelados"]], [["Novos", "Cancelados"]], [["Novos", "Cancelados"]]]', '[[["x"]], [["x"]], [["x"]]]', '[["Mês"], ["Mês"], ["Mês"]]', 'Sankhya', "WITH new_accounts AS (SELECT TO_CHAR(TRUNC(SYSDATE, 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 1 AND accounts_logs_a.ctrl_central = 1 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(SYSDATE, 'Mon') AND TRUNC(SYSDATE) AND accounts_logs_a.log_timestamp IN (SELECT MIN(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.log_timestamp < accounts_logs_a.log_timestamp) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 1 AND accounts_logs_a.ctrl_central = 1 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -1))) AND accounts_logs_a.log_timestamp IN (SELECT MIN(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.log_timestamp < accounts_logs_a.log_timestamp) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 1 AND accounts_logs_a.ctrl_central = 1 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -2))) AND accounts_logs_a.log_timestamp IN (SELECT MIN(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1 AND accounts_logs_b.log_timestamp < accounts_logs_a.log_timestamp)), canceled_accounts AS (SELECT TO_CHAR(TRUNC(SYSDATE, 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 0 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(SYSDATE, 'Mon') AND TRUNC(SYSDATE) AND accounts_logs_a.log_timestamp IN (SELECT MAX(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_b.fg_ativo = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.cd_cliente <> accounts_a.cd_cliente AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 0 AND accounts_logs_b.log_timestamp > accounts_logs_a.log_timestamp) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 0 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -1), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -1))) AND accounts_logs_a.log_timestamp IN (SELECT MAX(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_b.fg_ativo = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.cd_cliente <> accounts_a.cd_cliente AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 0 AND accounts_logs_b.log_timestamp > accounts_logs_a.log_timestamp) UNION ALL SELECT TO_CHAR(TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon'), 'Mon', 'NLS_DATE_LANGUAGE=PORTUGUESE') AS MONTH, COUNT(*) AS quantity FROM sankhya.ad_dbcsigma accounts_a INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_a ON accounts_a.cd_cliente = accounts_logs_a.cd_cliente WHERE 1 = 1 AND accounts_logs_a.fg_ativo = 0 AND TRUNC(accounts_logs_a.log_timestamp, 'DD') BETWEEN TRUNC(ADD_MONTHS(SYSDATE, -2), 'Mon') AND TRUNC(LAST_DAY(ADD_MONTHS(SYSDATE, -2))) AND accounts_logs_a.log_timestamp IN (SELECT MAX(accounts_logs_b.log_timestamp) FROM sankhya.ad_dbcsigmalog accounts_logs_b WHERE 1 = 1 AND accounts_logs_b.cd_cliente = accounts_logs_a.cd_cliente) AND EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 1 AND accounts_logs_b.ctrl_central = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b WHERE 1 = 1 AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_b.fg_ativo = 1) AND NOT EXISTS (SELECT 1 FROM sankhya.ad_dbcsigma accounts_b INNER JOIN sankhya.ad_dbcsigmalog accounts_logs_b ON accounts_b.cd_cliente = accounts_logs_b.cd_cliente WHERE 1 = 1 AND accounts_b.cd_cliente <> accounts_a.cd_cliente AND accounts_b.id_central = accounts_a.id_central AND accounts_b.id_empresa = accounts_a.id_empresa AND accounts_logs_b.fg_ativo = 0 AND accounts_logs_b.log_timestamp > accounts_logs_a.log_timestamp)) SELECT COALESCE(new_accounts_reference.month, canceled_accounts_reference.month) AS Mês, new_accounts_reference.quantity AS Novos, canceled_accounts_reference.quantity AS Cancelados FROM new_accounts new_accounts_reference FULL OUTER JOIN canceled_accounts canceled_accounts_reference ON new_accounts_reference.month = canceled_accounts_reference.month;", FALSE, FALSE, TRUE),
-    ('Deslocamentos 24h', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(central.id_central) AS Total FROM dbcentral central JOIN view_historico history ON history.cd_cliente = central.cd_cliente WHERE 1 = 1 AND history.dt_recebido BETWEEN (CONVERT(VARCHAR(10), CURRENT_TIMESTAMP - 1, 120) + ' 06:00:00.000') AND CURRENT_TIMESTAMP AND central.id_central <> '0000' AND history.dt_viatura_no_local <> '' AND central.id_estado = 'GO'", NULL, FALSE, TRUE),
-    ('Licenças', 'Utilizados / Disponíveis', 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'B', '[[["Utilizados", "Disponíveis"]]]', '[[["x"]]]', '[["Mês"]]', 'Sigma Desktop', "SELECT nu_contas_ativas AS Utilizados, (nu_contas_liberadas - nu_contas_ativas) AS Disponíveis FROM svl", FALSE, FALSE, TRUE),
-    ('OS 24h', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Desktop FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN osdefeito defect ON defect.idosdefeito = service_order.idosdefeito LEFT JOIN colaborador employee ON employee.cd_colaborador = central.cd_tecnico_responsavel LEFT JOIN rota way ON way.cd_rota = central.id_rota WHERE abertura BETWEEN CURRENT_TIMESTAMP - 90 AND CURRENT_TIMESTAMP AND service_order.fechado = 0 AND notes.nota IS NULL AND DATEDIFF(HOUR, service_order.abertura, CURRENT_TIMESTAMP) >= 60", NULL, FALSE, TRUE),
-    ('O.S. Sem Notas', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Cadastro FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN osdefeito defect ON defect.idosdefeito = service_order.idosdefeito WHERE abertura BETWEEN CURRENT_TIMESTAMP - 90 AND CURRENT_TIMESTAMP AND service_order.fechado = 0 AND company.cd_empresa IN (10017, 10021, 10020, 10025, 10054, 10037, 10052) AND client_group.cd_grupo_cliente IN (20066, 20136, 20136, 20108, 20124, 20066, 20166, 20127) AND notes.nota IS NULL AND central.id_estado = 'GO' AND defect.descricaodefeito IN ('CADASTRO', 'VENDA CONTROLE / TAG', 'CONTROLE DE ACESSO', 'EXCLUSÃO / BLOQUEIO', 'APLICATIVOS') AND DATEDIFF(HOUR, service_order.abertura, CURRENT_TIMESTAMP) >= 60", NULL, FALSE, TRUE),
-    ('O.S. Sem Notas', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Corporativo FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem LEFT JOIN colaborador employee ON employee.cd_colaborador = central.cd_tecnico_responsavel LEFT JOIN rota way ON way.cd_rota = central.id_rota WHERE abertura BETWEEN CURRENT_TIMESTAMP - 90 AND CURRENT_TIMESTAMP AND service_order.fechado = 0 AND employee.nm_colaborador LIKE 'ROTA 5%' AND notes.nota IS NULL AND DATEDIFF(HOUR, service_order.abertura, CURRENT_TIMESTAMP) >= 60", NULL, FALSE, TRUE),
-    ('O.S. Sem Notas', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Portaria FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem WHERE abertura BETWEEN CURRENT_TIMESTAMP - 90 AND CURRENT_TIMESTAMP AND service_order.fechado = 0 AND company.cd_empresa IN (10037, 10052) AND client_group.cd_grupo_cliente IN (20066, 20136, 20136, 20108, 20124, 20066, 20166, 20127) AND notes.nota IS NULL AND DATEDIFF(HOUR, service_order.abertura, CURRENT_TIMESTAMP) >= 60", NULL, FALSE, TRUE),
-    ('O.S. Sem Notas', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(service_order.id_ordem) AS Varejo FROM dbordem service_order INNER JOIN dbcentral central ON central.cd_cliente = service_order.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa LEFT JOIN os_notas notes ON notes.id_ordem = service_order.id_ordem WHERE abertura BETWEEN CURRENT_TIMESTAMP - 90 AND CURRENT_TIMESTAMP AND service_order.fechado = 0 AND company.cd_empresa IN (10017, 10021, 10020, 10025, 10054) AND client_group.cd_grupo_cliente IN (20066, 20136, 20136, 20108, 20124, 20066, 20166, 20127) AND notes.nota IS NULL AND DATEDIFF(HOUR, service_order.abertura, CURRENT_TIMESTAMP) >= 60", NULL, FALSE, TRUE),
-    ('Teste períodico', NULL, 'boletins-gerenciais', 'Sigma Desktop', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Sigma Desktop', "SELECT COUNT(history.cd_evento) AS Desktop FROM dbcentral central INNER JOIN view_historico history ON history.cd_cliente = central.cd_cliente LEFT JOIN dbeventctid primary_event ON primary_event.id_evento = history.cd_evento LEFT JOIN dbevento secondary_event ON secondary_event.cd_cliente = central.cd_cliente AND secondary_event.id_evento = history.nu_auxiliar LEFT JOIN colaborador employee ON employee.cd_colaborador = central.cd_tecnico_responsavel LEFT JOIN rota way ON way.cd_rota = central.id_rota LEFT JOIN view_ctrl_horario_central central_time ON central_time.cd_cliente = central.cd_cliente LEFT JOIN grupo_cliente client_group ON client_group.cd_grupo_cliente = central.cd_grupo_cliente LEFT JOIN empresa company ON company.cd_empresa = central.id_empresa WHERE 1 = 1 AND history.dt_recebido BETWEEN (CONVERT(VARCHAR(10), CURRENT_TIMESTAMP - 1, 120) + ' 16:00:00.000') AND CURRENT_TIMESTAMP AND central.id_central <> '0000' AND history.cd_evento IN ('E602', '1602')", NULL, FALSE, TRUE),
-	('Comunicação 3MOD', NULL, 'boletins-gerenciais', 'Three Mod', 'Contagem', NULL, 'A', NULL, NULL, NULL, 'Three Mod', "SELECT (SELECT COUNT(csid) FROM Conexao3MOD WHERE bloqueado = 0 AND falhacomunicacao = 0 AND horarioultrecepcao >= CURRENT_TIMESTAMP - 30) AS Online, (SELECT COUNT(csid) FROM Conexao3MOD WHERE bloqueado = 0 AND falhacomunicacao = 1 AND horarioultrecepcao >= CURRENT_TIMESTAMP - 30) AS Falha", NULL, FALSE, TRUE);
-
+    
 INSERT INTO `sankhya_database_configuration` (`instant_client_path`, `username`, `password`, `connect_string`)
 VALUES
     ('bf278c7d0e2ec91e4136954c4f6b7671e9653971fff3d5797b8356c5b41a3a83', 'c8ee46cd57d998f228979924744c3a2a', '3e6f4f21281f420d4d5e51954a7bac55', '38c5f332e0f02eb275d320d2677ac2aca2432b252fdf28ba02e5bbae785c858a');
@@ -1251,10 +1142,82 @@ VALUES
     
 INSERT INTO `three_mod_database_configuration` (`host`, `database`, `username`, `password`)
 VALUES
-	('9083a7a426c3a84f5ed1e4c8a658830d', '92e42f5940badb00352e7e1801d98f7b8c4d869b3d90f572ce274f09d4d753b7', '73c1e50b3424ca16cabd9a93132e9348', '4f60709cac7977807304ddf7def283a0');
+    ('9083a7a426c3a84f5ed1e4c8a658830d', '92e42f5940badb00352e7e1801d98f7b8c4d869b3d90f572ce274f09d4d753b7', '73c1e50b3424ca16cabd9a93132e9348', '4f60709cac7977807304ddf7def283a0');    
+
+
+/*    
+INSERT INTO `apis`
+    (
+        `name`, 
+        `heading`, 
+        `subheading`,
+        `application_type`, 
+        `service_type`, 
+        `data_type`, 
+        `method_type`, 
+        `authentication_type`, 
+        `response_type`, 
+        `formatting_type`, 
+        `bulletin_grouping_type`, 
+        `basic_authentication_username`, 
+        `basic_authentication_password`,
+        `token_authentication_token`, 
+        `basic_and_token_authentication_url`,
+        `basic_and_token_authentication_token_extractor_list`,
+        `basic_and_token_authentication_expiration_extractor_list`,
+        `basic_and_token_authentication_expiration_buffer`,
+        `api_key_authentication_key`, 
+        `api_key_authentication_header_name`, 
+        `oauth2_authentication_client_id`, 
+        `oauth2_authentication_client_secret`, 
+        `oauth2_authentication_token_url`, 
+        `oauth2_authentication_initial_token_map`, 
+        `data_url`, 
+        `body`,
+        `relational_formatting_content_selection_list`, 
+        `relational_formatting_content_separation_list`, 
+        `relational_formatting_content_key_map`, 
+        `relational_formatting_content_key_list`, 
+        `relational_formatting_is_key_value_content_key`,
+        `is_response_mapped`, 
+        `is_api_active`
+    ) 
+VALUES
+    ();
+*/
     
+/*
+INSERT INTO `queries`
+    (
+        `name`, 
+        `heading`, 
+        `subheading`,
+        `application_type`, 
+        `service_type`, 
+        `data_type`, 
+        `database_type`,
+        `formatting_type`, 
+        `bulletin_grouping_type`, 
+        `relational_formatting_content_selection_list`, 
+        `relational_formatting_content_separation_list`, 
+        `relational_formatting_content_key_map`, 
+        `relational_formatting_content_key_list`, 
+        `relational_formatting_is_key_value_content_key`,
+        `sql`, 
+        `is_response_mapped`, 
+        `is_query_periodic`,
+        `is_query_active`
+    ) 
+VALUES
+    ();
+*/
+        
 INSERT INTO `users` (`application_type`, `username`, `password`, `role_list`, `is_user_active`)
 VALUES
+    ('api-interpreter', 'admin', '$2a$10$mwm596weoEp3WcyIgz1Gc.v/X4ahJmg/hsV6reNr6VLeEGcUhoQ/6', '["admin", "user"]', TRUE),
+    ('api-interpreter', 'user', '$2a$10$HB/w4Q8IonMozeujZguvE.fJX.pL28lw6sZcIesIYvdAY16HXMgMW', '["user"]', TRUE),
+    ('query-interpreter', 'admin', '$2a$10$mwm596weoEp3WcyIgz1Gc.v/X4ahJmg/hsV6reNr6VLeEGcUhoQ/6', '["admin", "user"]', TRUE),
+    ('query-interpreter', 'user', '$2a$10$HB/w4Q8IonMozeujZguvE.fJX.pL28lw6sZcIesIYvdAY16HXMgMW', '["user"]', TRUE),
     ('storage-manager', 'admin', '$2a$10$mwm596weoEp3WcyIgz1Gc.v/X4ahJmg/hsV6reNr6VLeEGcUhoQ/6', '["admin", "user"]', TRUE),
-    ('storage-manager', 'user', '$2a$10$HB/w4Q8IonMozeujZguvE.fJX.pL28lw6sZcIesIYvdAY16HXMgMW', '["user"]', TRUE)
+    ('storage-manager', 'user', '$2a$10$HB/w4Q8IonMozeujZguvE.fJX.pL28lw6sZcIesIYvdAY16HXMgMW', '["user"]', TRUE);
 
