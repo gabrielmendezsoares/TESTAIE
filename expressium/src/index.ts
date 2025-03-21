@@ -83,9 +83,9 @@ Object.isString = (element: unknown): element is string => {
   return Object.prototype.toString.call(element) === '[object String]';
 };
 
-const PORT = process.env.PORT ?? '3000';
 const LOG_INTERVAL = 10_000;
-const SHUTDOWN_SIGNALS = ['SIGTERM', 'SIGINT'] as const;
+const SHUTDOWN_SIGNAL_LIST = ['SIGTERM', 'SIGINT'] as const;
+const PORT = process.env.PORT ?? '3000';
 
 /**
  * ## setupPeriodicLogging
@@ -134,12 +134,12 @@ const setupPeriodicLogging = (): NodeJS.Timeout => {
  * @param server - The HTTP/HTTPS server instance to shut down gracefully.
  */
 const setupGracefulShutdown = (server: Server<typeof IncomingMessage, typeof ServerResponse>): void => {
-  SHUTDOWN_SIGNALS.forEach(
-    (signal): void => {
+  SHUTDOWN_SIGNAL_LIST.forEach(
+    (shutdownSignal: string): void => {
       process.on(
-        signal, 
+        shutdownSignal, 
         (): void => {
-          console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: ${ signal } received. Shutting down the server`);
+          console.log(`Server | Timestamp: ${ dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()) } | Status: ${ shutdownSignal } received. Shutting down the server`);
           
           server.close(
             (): void => {
@@ -336,7 +336,7 @@ export {
   BasicStrategy, 
   BasicAndTokenStrategy, 
   OAuth2Strategy,
-  IAuthenticationStrategy,
   TokenStrategy,
+  IAuthenticationStrategy,
   createServer
 };

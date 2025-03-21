@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import JWT from 'jsonwebtoken';
 import { IDecodedToken, IResponse, IResponseData } from '../interfaces';
 import { dateTimeFormatterUtil } from '../utils';

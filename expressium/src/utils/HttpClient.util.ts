@@ -10,7 +10,7 @@ import { IAuthenticationStrategy } from './strategies/interfaces';
  * 
  * @description This class provides a robust and configurable interface for making HTTP requests
  * to the server. Built on top of the Axios library, it offers a comprehensive set of methods
- * for handling common HTTP verbs (GET, POST, PUT, PATCH, DELETE) with
+ * for handling common HTTP verbs (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS) with
  * consistent error handling and authentication support.
  * 
  * Key features include:
@@ -29,6 +29,8 @@ import { IAuthenticationStrategy } from './strategies/interfaces';
  * @method put - Performs a PUT request to update or replace existing resources.
  * @method patch - Performs a PATCH request to partially update existing resources.
  * @method delete - Performs a DELETE request to remove resources from the server.
+ * @method head - Performs a HEAD request to retrieve metadata from the server.
+ * @method options - Performs a OPTIONS request to retrieve server capabilities.
  */
 export class HttpClient {
   /**
@@ -84,7 +86,7 @@ export class HttpClient {
    * when not explicitly overridden. It establishes consistent defaults for important
    * behaviors such as:
    * 
-   * - retry.statusCodes: HTTP status codes that trigger automatic retry attempts (defaults to standard transient error codes)
+   * - retry.statusCodeList: HTTP status codes that trigger automatic retry attempts (defaults to standard transient error codes)
    * - retry.maxAttempts: Maximum number of retry attempts before failing permanently (defaults to 3 attempts)
    * - retry.baseDelay: Initial delay in milliseconds between retry attempts, which increases exponentially with each attempt (defaults to 1000ms)
    * - headers: Default headers sent with every request (defaults to accepting all content types)
@@ -97,7 +99,7 @@ export class HttpClient {
    */
   private readonly DEFAULT_CONFIGURATION_MAP: Required<Pick<IConfigurationMap.IConfigurationMap, 'retry' | 'headers' | 'timeout'>> = {
     retry: {
-      statusCodes: [408, 429, 500, 502, 503, 504],
+      statusCodeList: [408, 429, 500, 502, 503, 504],
       maxAttempts: 3,
       baseDelay: 1000
     },
@@ -294,7 +296,7 @@ export class HttpClient {
       async (error: AxiosError<unknown, any>): Promise<AxiosResponse<any, any>> => {
         const configurationMap = error.config as AxiosRequestConfig<any> & { _retryCount?: number };
         
-        if (!configurationMap || !updatedRetryConfigurationMap.statusCodes.includes(error.response?.status ?? 0)) {
+        if (!configurationMap || !updatedRetryConfigurationMap.statusCodeList.includes(error.response?.status ?? 0)) {
           return Promise.reject(error);
         }
 
@@ -720,5 +722,126 @@ export class HttpClient {
     configurationMap?: Partial<AxiosRequestConfig<any>>
   ): Promise<AxiosResponse<T, any>> {
     return this.request<T>('DELETE', url, undefined, configurationMap);
+  }
+
+  /**
+   * ## head
+   * 
+   * Performs a HEAD request to retrieve metadata from the server.
+   * 
+   * @description This method performs a HEAD request to retrieve metadata from the server.
+   * HEAD requests are similar to GET requests but only return the response headers without
+   * the response body. This is useful for checking resource availability, content length,
+   * and other metadata without downloading the full resource.
+   * 
+   * Common use cases include:
+   * 
+   * - Checking if a resource exists
+   * - Retrieving metadata (content type, content length, etc.)
+   * - Testing server availability
+   * 
+   * The request will automatically include any authentication strategy that has been
+   * configured and will retry on transient failures based on the retry configuration.
+   * 
+   * @public
+   * 
+   * @async
+   * 
+   * @template T - Type of the expected response data. Using a generic type parameter
+   * enables type-safe access to the response body and ensures proper type checking.
+   * 
+   * @param url - Request URL. Can be a relative path (which will be appended to the baseURL
+   * if configured) or an absolute URL.
+   * 
+   * @param configurationMap - Additional request configuration options. Can include:
+   * 
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
+   * 
+   * @returns Promise resolving to an AxiosResponse object with data of type T. The response
+   * includes the complete response object with:
+   * 
+   * - data: The response body (typed as T)
+   * - status: HTTP status code
+   * - statusText: HTTP status message
+   * - headers: Response headers
+   * - config: The request configuration used
+   * 
+   * @throws AxiosError if the request fails, including:
+   * 
+   * - Network errors
+   * - Timeout errors
+   * - HTTP error status codes (after retry attempts are exhausted)
+   * - Request cancellation
+   * - Payload too large errors
+   */
+  public async head<T>(
+    url: string, 
+    configurationMap?: Partial<AxiosRequestConfig<any>>
+  ): Promise<AxiosResponse<T, any>> {
+    return this.request<T>('HEAD', url, undefined, configurationMap);
+  }
+
+  /**
+   * ## options
+   * 
+   * Performs a OPTIONS request to retrieve server capabilities.
+   * 
+   * @description This method performs an OPTIONS request to retrieve server capabilities
+   * and supported methods for a specific resource. OPTIONS requests are used to query
+   * the server about the allowed methods, headers, and other information for a resource.
+   * 
+   * Common use cases include:
+   * 
+   * - Checking allowed methods for a resource
+   * - Querying server capabilities
+   * - Testing CORS preflight requests
+   * 
+   * The request will automatically include any authentication strategy that has been
+   * configured and will retry on transient failures based on the retry configuration.
+   * 
+   * @public
+   * 
+   * @async
+   * 
+   * @template T - Type of the expected response data. Using a generic type parameter
+   * enables type-safe access to the response body and ensures proper type checking.
+   * 
+   * @param url - Request URL. Can be a relative path (which will be appended to the baseURL
+   * if configured) or an absolute URL.
+   * 
+   * @param configurationMap - Additional request configuration options. Can include:
+   * 
+   * - params: URL query parameters as an object
+   * - headers: Custom headers for this specific request
+   * - timeout: Custom timeout for this request (overrides default)
+   * - responseType: Expected response type (json, text, blob, etc.)
+   * - Any other valid Axios request configuration options
+   * 
+   * @returns Promise resolving to an AxiosResponse object with data of type T. The response
+   * includes the complete response object with:
+   * 
+   * - data: The response body (typed as T)
+   * - status: HTTP status code
+   * - statusText: HTTP status message
+   * - headers: Response headers
+   * - config: The request configuration used
+   * 
+   * @throws AxiosError if the request fails, including:
+   * 
+   * - Network errors
+   * - Timeout errors
+   * - HTTP error status codes (after retry attempts are exhausted)
+   * - Request cancellation
+   * - Payload too large errors
+   */
+  public async options<T>(
+    url: string, 
+    configurationMap?: Partial<AxiosRequestConfig<any>>
+  ): Promise<AxiosResponse<T, any>> {
+    return this.request<T>('OPTIONS', url, undefined, configurationMap);
   }
 }

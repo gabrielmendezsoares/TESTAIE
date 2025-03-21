@@ -1,6 +1,6 @@
 import cors from 'cors';
 import 'dotenv/config';
-import express, { Application, Express, Request, Response, NextFunction } from 'express';
+import express, { Application, Express, NextFunction, Request, Response } from 'express';
 import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
 import fs from 'fs/promises';
 import helmet from 'helmet';
@@ -83,9 +83,11 @@ const getRateLimiter = (): RateLimitRequestHandler => {
               status: false,
               statusCode: 429,
               timestamp: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(new Date()),
-              resetTime: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(req.rateLimit.resetTime as Date),
+              path: req.originalUrl || req.url,
+              method: req.method,
               message: 'Too many requests from this IP.',
-              suggestion: 'Please wait before trying again.'
+              suggestion: 'Please wait before trying again.',
+              resetTime: dateTimeFormatterUtil.formatAsDayMonthYearHoursMinutesSeconds(req.rateLimit.resetTime as Date)
             }
           );
       }

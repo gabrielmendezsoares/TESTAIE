@@ -25,7 +25,7 @@ export interface IConfigurationMap extends AxiosRequestConfig<any> {
    * 
    * @description This object contains settings that control how the client should
    * handle requests that fail. If the response status code matches any of the
-   * values in the statusCodes array, the client will make up to maxAttempts
+   * values in the statusCodeList array, the client will make up to maxAttempts
    * attempts to retry the request, waiting baseDelay milliseconds between each
    * attempt.
    * 
@@ -38,7 +38,7 @@ export interface IConfigurationMap extends AxiosRequestConfig<any> {
    */
   retry?: {
     /**
-     * ## statusCodes
+     * ## statusCodeList
      * 
      * HTTP status codes that should trigger a retry.
      * 
@@ -60,7 +60,7 @@ export interface IConfigurationMap extends AxiosRequestConfig<any> {
      * retried as they usually indicate a problem with the request itself rather
      * than a transient server issue.
      */
-    statusCodes: number[];
+    statusCodeList: number[];
 
     /**
      * ## maxAttempts
